@@ -57,8 +57,10 @@ const CellComponent: React.FC<CellProps> = React.memo(({
       return "text-4xl sm:text-5xl"; // Single char (0-9)
     } else if (len === 2) {
       return "text-2xl sm:text-4xl"; // Two chars (10-99)
+    } else if (len === 3) {
+      return "text-lg sm:text-3xl"; // 3 chars (100, 0.1, etc) - Reduced mobile size
     } else {
-      return "text-lg sm:text-2xl"; // 3+ chars (100+, 0.01, etc)
+      return "text-xs sm:text-xl"; // 4+ chars (0.75, 1.25) - Significantly reduced for mobile fit
     }
   };
 
@@ -159,14 +161,16 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
 
   const formatValue = (val: number) => {
     if (mode === 'decimal') {
-      // Use 1 decimal place (tenths)
-      return (val / 10).toFixed(1);
+      // Use 2 decimal places but strip insignificant zeros
+      // 1 -> 0.01, 10 -> 0.1, 75 -> 0.75
+      return parseFloat((val / 100).toFixed(2));
     }
     return val;
   };
 
   const formatHeader = (val: number) => {
     if (mode === 'decimal') {
+      // Headers remain 0.1 increments: 0.1, 0.2 ... 1.0
       return (val / 10).toFixed(1);
     }
     return val;

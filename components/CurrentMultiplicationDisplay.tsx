@@ -14,6 +14,7 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
 
   const formatNumber = (num: number) => {
     if (gridMode === 'decimal') {
+      // Headers are formatted as num/10 (e.g. 1 -> 0.1)
       return (num / 10).toFixed(1);
     }
     return num.toString();
@@ -21,9 +22,10 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
 
   const formatResult = (left: number, top: number) => {
     if (gridMode === 'decimal') {
-      // Matching grid calculation: (Left Index * Top Index) / 10
-      // This represents counting tenths in the grid.
-      return (left * top / 10).toFixed(1);
+      // Matching grid calculation: (Left Index * Top Index) / 100
+      // This represents 0.01 per cell.
+      const val = (left * top) / 100;
+      return parseFloat(val.toFixed(2));
     }
     return (left * top).toString();
   };
