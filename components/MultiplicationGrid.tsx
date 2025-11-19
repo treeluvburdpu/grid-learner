@@ -48,8 +48,6 @@ const CellComponent: React.FC<CellProps> = React.memo(({
   let interactiveClasses = onClick ? "cursor-pointer" : "";
   let ariaLabel = "";
 
-  const headerTextSize = "text-lg sm:text-xl";
-
   // Font size calculator based on character length
   const getDataFontSize = (val: number | string) => {
     const strVal = String(val);
@@ -64,12 +62,15 @@ const CellComponent: React.FC<CellProps> = React.memo(({
     }
   };
 
+  // Use the same font sizing logic for headers as well
+  const dynamicTextSize = getDataFontSize(actualValue);
+
   if (isHeader) {
-    textStyleClass = `${headerTextSize} text-cyan-400 font-bold`;
+    textStyleClass = `${dynamicTextSize} text-cyan-400 font-bold`;
     effectiveDisplayContent = actualValue;
     
     if (isSelected) {
-        textStyleClass = `${headerTextSize} text-cyan-400 font-bold`;
+        textStyleClass = `${dynamicTextSize} text-cyan-400 font-bold`;
     }
 
     bgClass = isSelected ? "bg-gray-700/60" : "hover:bg-gray-700/50";
@@ -77,10 +78,7 @@ const CellComponent: React.FC<CellProps> = React.memo(({
     ariaLabel = actualValue === "0" ? `Reset selection` : `Select ${actualValue}`;
 
   } else { // Data cell
-    
-    const dataTextSize = getDataFontSize(actualValue);
-
-    textStyleClass = `${dataTextSize} font-bold leading-none`;
+    textStyleClass = `${dynamicTextSize} font-bold leading-none`;
     if (isChangeHighlightedYellow) {
       effectiveDisplayContent = actualValue;
       textStyleClass += ` text-yellow-500`;
@@ -161,7 +159,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
 
   const formatValue = (val: number) => {
     if (mode === 'decimal') {
-      return (val / 100).toFixed(2);
+      // Use 1 decimal place (tenths)
+      return (val / 10).toFixed(1);
     }
     return val;
   };

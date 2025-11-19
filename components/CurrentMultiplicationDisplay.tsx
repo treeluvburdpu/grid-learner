@@ -21,7 +21,9 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
 
   const formatResult = (left: number, top: number) => {
     if (gridMode === 'decimal') {
-      return (left * top / 100).toFixed(2);
+      // Matching grid calculation: (Left Index * Top Index) / 10
+      // This represents counting tenths in the grid.
+      return (left * top / 10).toFixed(1);
     }
     return (left * top).toString();
   };
