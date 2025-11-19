@@ -2,13 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { GridMode } from '../types';
 
 // Shared constants for styling
-const TEXT_SIZE_MODE_10_HEADER = "text-lg sm:text-xl";
-const TEXT_SIZE_MODE_100_HEADER = "text-base";
-const TEXT_SIZE_MODE_100_DATA = "text-xs";
-
-const HEADER_DIM_MODE_10 = '3rem'; 
-const HEADER_DIM_MODE_100 = '1.75rem'; 
-
+const HEADER_DIM = '3rem'; 
 const YELLOW_HIGHLIGHT_DURATION_MS = 2000;
 
 interface CellProps {
@@ -54,44 +48,27 @@ const CellComponent: React.FC<CellProps> = React.memo(({
   let interactiveClasses = onClick ? "cursor-pointer" : "";
   let ariaLabel = "";
 
-  const headerTextSize = mode === '10' ? TEXT_SIZE_MODE_10_HEADER : TEXT_SIZE_MODE_100_HEADER;
+  const headerTextSize = "text-lg sm:text-xl";
 
-  // Font size calculator for data cells
-  const getDataFontSize = (val: number | string, currentMode: GridMode) => {
-    if (currentMode === '100') return TEXT_SIZE_MODE_100_DATA;
+  // Font size calculator based on character length
+  const getDataFontSize = (val: number | string) => {
+    const strVal = String(val);
+    const len = strVal.length;
     
-    const numVal = Number(val);
-    if (isNaN(numVal)) return "text-xs"; // Fallback
-
-    if (numVal < 10) {
-      return "text-4xl sm:text-5xl"; // Base size for 1 digit
-    } else if (numVal < 100) {
-      return "text-2xl sm:text-4xl"; // ~30% smaller for 2 digits
+    if (len <= 1) {
+      return "text-4xl sm:text-5xl"; // Single char (0-9)
+    } else if (len === 2) {
+      return "text-2xl sm:text-4xl"; // Two chars (10-99)
     } else {
-      return "text-lg sm:text-2xl"; // Another ~30% smaller for 3 digits
+      return "text-lg sm:text-2xl"; // 3+ chars (100+, 0.01, etc)
     }
   };
 
   if (isHeader) {
     textStyleClass = `${headerTextSize} text-cyan-400 font-bold`;
-    let displayHeaderValue: string | number = "";
-    const num = Number(actualValue);
-
-    if (mode === '10' || actualValue === "0") {
-      displayHeaderValue = actualValue;
-    } else { // mode === '100'
-      const maxVal = isBottomHeader ? maxX! : maxY!;
-      const shouldShowByDefault = num % 10 === 0 || num === 1 || num === maxVal;
-      if (shouldShowByDefault || isSelected) {
-        displayHeaderValue = actualValue;
-      }
-      if (isHovered && displayHeaderValue === "" && !isSelected) {
-        displayHeaderValue = actualValue;
-        textStyleClass = `${headerTextSize} text-cyan-300 font-bold`;
-      }
-    }
-    effectiveDisplayContent = displayHeaderValue;
-     if (isSelected && displayHeaderValue !== "") {
+    effectiveDisplayContent = actualValue;
+    
+    if (isSelected) {
         textStyleClass = `${headerTextSize} text-cyan-400 font-bold`;
     }
 
@@ -101,7 +78,7 @@ const CellComponent: React.FC<CellProps> = React.memo(({
 
   } else { // Data cell
     
-    const dataTextSize = getDataFontSize(actualValue, mode);
+    const dataTextSize = getDataFontSize(actualValue);
 
     textStyleClass = `${dataTextSize} font-bold leading-none`;
     if (isChangeHighlightedYellow) {
@@ -112,19 +89,8 @@ const CellComponent: React.FC<CellProps> = React.memo(({
     } else if (isHighlightedGreen) {
       bgClass = "bg-green-700/40";
       ariaLabel = `Value ${actualValue}`;
-      if (mode === '10') {
-        effectiveDisplayContent = actualValue;
-        textStyleClass += ` text-green-300`;
-      } else {
-        const showIn100xGreen = isHovered || isFirstSelectedCol || isLastSelectedCol || isFirstSelectedRow || isLastSelectedRow;
-        if (showIn100xGreen) {
-          effectiveDisplayContent = actualValue;
-          textStyleClass += ` text-green-300`;
-        } else {
-          effectiveDisplayContent = "";
-          textStyleClass += ` text-transparent`;
-        }
-      }
+      effectiveDisplayContent = actualValue;
+      textStyleClass += ` text-green-300`;
     } else {
       effectiveDisplayContent = "";
       textStyleClass += ` text-transparent`;
@@ -180,8 +146,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   onSelectLeft,
   onReset,
 }) => {
-  const maxX = mode === '10' ? 10 : 100;
-  const maxY = mode === '10' ? 20 : (mode === '100' ? 100 : 200);
+  // 1.0x2.0 mode uses same grid dimensions as 10x20 (10 columns, 20 rows)
+  const maxX = 10;
+  const maxY = 20;
 
   const prevSelectedTopRef = useRef<number | null>(null);
   const prevSelectedLeftRef = useRef<number | null>(null);
@@ -191,6 +158,20 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
 
   const handleMouseEnter = useCallback((key: string) => setHoveredCellKey(key), []);
   const handleMouseLeaveGrid = useCallback(() => setHoveredCellKey(null), []);
+
+  const formatValue = (val: number) => {
+    if (mode === 'decimal') {
+      return (val / 100).toFixed(2);
+    }
+    return val;
+  };
+
+  const formatHeader = (val: number) => {
+    if (mode === 'decimal') {
+      return (val / 10).toFixed(1);
+    }
+    return val;
+  };
 
   useEffect(() => {
     if (yellowHighlightTimerRef.current) clearTimeout(yellowHighlightTimerRef.current);
@@ -236,9 +217,7 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
     setHoveredCellKey(null);
   }, [mode]);
 
-  const getCellBorderClasses = (rowNum: number, colNum: number, currentMode: GridMode, isYellow: boolean): string => {
-    if (currentMode === '100') return "";
-
+  const getCellBorderClasses = (rowNum: number, colNum: number, isYellow: boolean): string => {
     if (rowNum === 0 || colNum === 0) return ""; 
     if (isYellow) return "border-t border-l border-yellow-500/80";
     
@@ -248,7 +227,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
     return `${topBorderClass} ${leftBorderClass}`.trim();
   };
 
-  const headerDim = mode === '10' ? HEADER_DIM_MODE_10 : HEADER_DIM_MODE_100;
   const isSelectionActive = selectedTop !== null && selectedLeft !== null;
   const cornerCellKey = "header-corner-0";
   
@@ -258,8 +236,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
     // Left Header for the current row
     const headerKey = `header-left-${r}`;
     const isHeaderDimmed = isSelectionActive;
+    const headerVal = formatHeader(r);
     rowElements.push(
-      <CellComponent key={headerKey} content={r} actualValue={r}
+      <CellComponent key={headerKey} content={headerVal} actualValue={headerVal}
         isHovered={hoveredCellKey === headerKey} onMouseEnter={() => handleMouseEnter(headerKey)}
         onClick={() => onSelectLeft(r)} isHeader isLeftHeader maxY={maxY} isSelected={selectedLeft === r}
         mode={mode} borderClasses="" baseSizeClasses="w-full h-full" isDimmed={isHeaderDimmed} />
@@ -275,7 +254,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
       
       let cellValue: string | number = ""; 
       if ((isGreenHighlighted || isYellow) && selectedTop !== null) {
-         cellValue = (r - 1) * selectedTop + c;
+         const rawVal = (r - 1) * selectedTop + c;
+         cellValue = formatValue(rawVal);
       }
 
       const isFirstSelRow = selectedLeft !== null && r === 1;
@@ -283,7 +263,7 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
       const isFirstSelCol = selectedTop !== null && c === 1;
       const isLastSelCol = selectedTop !== null && c === selectedTop;
 
-      let borderClasses = getCellBorderClasses(r, c, mode, isYellow);
+      let borderClasses = getCellBorderClasses(r, c, isYellow);
       if (isLastSelCol && isGreenHighlighted) {
         borderClasses = `${borderClasses} border-r border-green-400`.trim();
       }
@@ -308,8 +288,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
     <div
       className="grid bg-black/60 select-none w-full"
       style={{
-        gridTemplateColumns: `${headerDim} repeat(${maxX}, minmax(0, 1fr))`,
-        gridTemplateRows: `repeat(${maxY}, auto) ${headerDim}`, // Rows first, then Header at bottom
+        gridTemplateColumns: `${HEADER_DIM} repeat(${maxX}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${maxY}, auto) ${HEADER_DIM}`, // Rows first, then Header at bottom
       }}
       role="grid" aria-rowcount={maxY + 1} aria-colcount={maxX + 1}
       onMouseLeave={handleMouseLeaveGrid}
@@ -325,9 +305,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
           onClick={onReset}
           isHeader={true}
           mode={mode}
-          borderClasses={mode === '100' ? "" : "bg-black/10"}
+          borderClasses="bg-black/10"
           baseSizeClasses="w-full h-full"
-          style={{width: headerDim, height: headerDim}}
+          style={{width: HEADER_DIM, height: HEADER_DIM}}
           isDimmed={isSelectionActive}
       />
       
@@ -335,8 +315,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
       {Array.from({ length: maxX }, (_, i) => i + 1).map(num => {
         const cellKey = `header-bottom-${num}`;
         const isDimmed = isSelectionActive;
-        const borderClasses = mode === '10' ? "border-t border-white/30" : "";
-        return <CellComponent key={cellKey} content={num} actualValue={num}
+        const borderClasses = "border-t border-white/30";
+        const headerVal = formatHeader(num);
+        return <CellComponent key={cellKey} content={headerVal} actualValue={headerVal}
           isHovered={hoveredCellKey === cellKey} onMouseEnter={() => handleMouseEnter(cellKey)}
           onClick={() => onSelectTop(num)} isHeader isBottomHeader maxX={maxX} isSelected={selectedTop === num}
           mode={mode} borderClasses={borderClasses} baseSizeClasses="w-full h-full" isDimmed={isDimmed} />;

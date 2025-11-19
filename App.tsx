@@ -37,13 +37,9 @@ const App: React.FC = () => {
     <div className="h-screen bg-black text-white flex flex-col items-center p-1 sm:p-2 md:p-4 overflow-hidden">
       <div className="w-full max-w-full xl:max-w-7xl flex flex-col h-full">
         
-        {/* Top Header: Controls & Title (Moved from Footer) */}
-        <header className="flex justify-between items-center py-2 sm:py-3 md:py-4 sticky top-0 bg-black z-20 px-1 md:px-2 border-b border-gray-700/50 shrink-0">
-          <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-300 truncate flex items-baseline">
-            Lucia's multiplier
-            <CurrentMultiplicationDisplay selectedLeft={selectedLeft} selectedTop={selectedTop} showZeroResult={showZeroResult} />
-          </h1>
-          <GridControls currentMode={gridMode} onModeChange={handleGridModeChange} />
+        {/* Top Header: Info Text */}
+        <header className="text-center py-2 text-xs text-gray-500 sticky top-0 bg-black z-20 border-b border-gray-700/50 shrink-0">
+           Select numbers on edge. Grid is scrollable.
         </header>
 
         {/* Main Content: Grid - Flex Col Reverse for bottom-anchored scrolling */}
@@ -60,9 +56,13 @@ const App: React.FC = () => {
           </div>
         </main>
 
-        {/* Bottom Footer: Info Text (Moved from Header) */}
-        <footer className="text-center py-2 text-xs text-gray-500 sticky bottom-0 bg-black z-20 border-t border-gray-700/50 shrink-0">
-          Select numbers. {gridMode === '100' ? 'Grid is scrollable.' : 'Grid is scrollable.'} {gridMode === '100' ? 'Hover headers/cells for numbers.' : '100x mode: hover headers/cells for numbers.'}
+        {/* Bottom Footer: Controls & Title */}
+        <footer className="flex justify-between items-center py-2 sm:py-3 md:py-4 sticky bottom-0 bg-black z-20 px-1 md:px-2 border-t border-gray-700/50 shrink-0">
+          <h1 className="text-base sm:text-xl md:text-2xl font-bold text-gray-300 truncate flex items-baseline">
+            Lucia's multiplier
+            <CurrentMultiplicationDisplay selectedLeft={selectedLeft} selectedTop={selectedTop} showZeroResult={showZeroResult} gridMode={gridMode} />
+          </h1>
+          <GridControls currentMode={gridMode} onModeChange={handleGridModeChange} />
         </footer>
 
       </div>

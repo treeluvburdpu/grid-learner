@@ -1,1 +1,1 @@
-export type GridMode = '10' | '100';
+export type GridMode = '10' | 'decimal';
