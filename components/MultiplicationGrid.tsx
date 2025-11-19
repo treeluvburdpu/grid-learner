@@ -3,8 +3,6 @@ import type { GridMode } from '../types';
 
 // Shared constants for styling
 const TEXT_SIZE_MODE_10_HEADER = "text-lg sm:text-xl";
-const TEXT_SIZE_MODE_10_DATA = "text-4xl sm:text-5xl";
-const TEXT_SIZE_MODE_10_DATA_3_DIGIT = "text-3xl sm:text-4xl";
 const TEXT_SIZE_MODE_100_HEADER = "text-base";
 const TEXT_SIZE_MODE_100_DATA = "text-xs";
 
@@ -29,7 +27,7 @@ interface CellProps {
   mode: GridMode;
   baseSizeClasses?: string;
   style?: React.CSSProperties;
-  isBottomHeader?: boolean; // Changed from isTopHeader
+  isBottomHeader?: boolean;
   isLeftHeader?: boolean;
   maxX?: number;
   maxY?: number;
@@ -57,6 +55,22 @@ const CellComponent: React.FC<CellProps> = React.memo(({
   let ariaLabel = "";
 
   const headerTextSize = mode === '10' ? TEXT_SIZE_MODE_10_HEADER : TEXT_SIZE_MODE_100_HEADER;
+
+  // Font size calculator for data cells
+  const getDataFontSize = (val: number | string, currentMode: GridMode) => {
+    if (currentMode === '100') return TEXT_SIZE_MODE_100_DATA;
+    
+    const numVal = Number(val);
+    if (isNaN(numVal)) return "text-xs"; // Fallback
+
+    if (numVal < 10) {
+      return "text-4xl sm:text-5xl"; // Base size for 1 digit
+    } else if (numVal < 100) {
+      return "text-2xl sm:text-4xl"; // ~30% smaller for 2 digits
+    } else {
+      return "text-lg sm:text-2xl"; // Another ~30% smaller for 3 digits
+    }
+  };
 
   if (isHeader) {
     textStyleClass = `${headerTextSize} text-cyan-400 font-bold`;
@@ -86,10 +100,8 @@ const CellComponent: React.FC<CellProps> = React.memo(({
     ariaLabel = actualValue === "0" ? `Reset selection` : `Select ${actualValue}`;
 
   } else { // Data cell
-    let dataTextSize = mode === '10' ? TEXT_SIZE_MODE_10_DATA : TEXT_SIZE_MODE_100_DATA;
-    if (mode === '10' && Number(actualValue) >= 100) {
-      dataTextSize = TEXT_SIZE_MODE_10_DATA_3_DIGIT;
-    }
+    
+    const dataTextSize = getDataFontSize(actualValue, mode);
 
     textStyleClass = `${dataTextSize} font-bold leading-none`;
     if (isChangeHighlightedYellow) {
