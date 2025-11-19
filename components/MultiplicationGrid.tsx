@@ -8,12 +8,10 @@ const TEXT_SIZE_MODE_10_DATA_3_DIGIT = "text-3xl sm:text-4xl";
 const TEXT_SIZE_MODE_100_HEADER = "text-base";
 const TEXT_SIZE_MODE_100_DATA = "text-xs";
 
-const HEADER_DIM_MODE_10 = '3rem'; // For 10x20 grid header track size
-const HEADER_DIM_MODE_100 = '1.75rem'; // For 100x100 grid header track size
+const HEADER_DIM_MODE_10 = '3rem'; 
+const HEADER_DIM_MODE_100 = '1.75rem'; 
 
-// You can adjust this value to change the highlight duration.
-const YELLOW_HIGHLIGHT_DURATION_MS = 2000; // Duration for yellow highlight on changed cells (in milliseconds)
-
+const YELLOW_HIGHLIGHT_DURATION_MS = 2000;
 
 interface CellProps {
   content: React.ReactNode;
@@ -31,11 +29,10 @@ interface CellProps {
   mode: GridMode;
   baseSizeClasses?: string;
   style?: React.CSSProperties;
-  isTopHeader?: boolean;
-  isLeftHeader?: boolean; // Added for clarity
+  isBottomHeader?: boolean; // Changed from isTopHeader
+  isLeftHeader?: boolean;
   maxX?: number;
   maxY?: number;
-  // For 100x mode data cell display logic
   isFirstSelectedRow?: boolean;
   isLastSelectedRow?: boolean;
   isFirstSelectedCol?: boolean;
@@ -49,11 +46,11 @@ const CellComponent: React.FC<CellProps> = React.memo(({
   className, onClick, onMouseEnter, onMouseLeave,
   isHeader, isSelected, isHighlightedGreen, isChangeHighlightedYellow,
   borderClasses, mode, baseSizeClasses, style,
-  isTopHeader, isLeftHeader, maxX, maxY,
+  isBottomHeader, isLeftHeader, maxX, maxY,
   isFirstSelectedRow, isLastSelectedRow, isFirstSelectedCol, isLastSelectedCol,
   isMaxValueCell, isDimmed
 }) => {
-  let effectiveDisplayContent: React.ReactNode = ""; // Default to empty
+  let effectiveDisplayContent: React.ReactNode = "";
   let textStyleClass = "";
   let bgClass = "bg-transparent";
   let interactiveClasses = onClick ? "cursor-pointer" : "";
@@ -69,23 +66,23 @@ const CellComponent: React.FC<CellProps> = React.memo(({
     if (mode === '10' || actualValue === "0") {
       displayHeaderValue = actualValue;
     } else { // mode === '100'
-      const maxVal = isTopHeader ? maxX! : maxY!;
+      const maxVal = isBottomHeader ? maxX! : maxY!;
       const shouldShowByDefault = num % 10 === 0 || num === 1 || num === maxVal;
       if (shouldShowByDefault || isSelected) {
         displayHeaderValue = actualValue;
       }
-      if (isHovered && displayHeaderValue === "" && !isSelected) { // Hovering over a normally hidden header
+      if (isHovered && displayHeaderValue === "" && !isSelected) {
         displayHeaderValue = actualValue;
-        textStyleClass = `${headerTextSize} text-cyan-300 font-bold`; // Lighter cyan for preview
+        textStyleClass = `${headerTextSize} text-cyan-300 font-bold`;
       }
     }
     effectiveDisplayContent = displayHeaderValue;
-     if (isSelected && displayHeaderValue !== "") { // Ensure selected always shows value clearly in its normal color
+     if (isSelected && displayHeaderValue !== "") {
         textStyleClass = `${headerTextSize} text-cyan-400 font-bold`;
     }
 
     bgClass = isSelected ? "bg-gray-700/60" : "hover:bg-gray-700/50";
-    if (isSelected) style = { ...style, boxShadow: '0 0 0 1px #60a5fa', outline: '1px solid #60a5fa' }; // Ring alternative for non-Tailwind JIT, using #60a5fa (blue-400)
+    if (isSelected) style = { ...style, boxShadow: '0 0 0 1px #60a5fa', outline: '1px solid #60a5fa' };
     ariaLabel = actualValue === "0" ? `Reset selection` : `Select ${actualValue}`;
 
   } else { // Data cell
@@ -106,7 +103,7 @@ const CellComponent: React.FC<CellProps> = React.memo(({
       if (mode === '10') {
         effectiveDisplayContent = actualValue;
         textStyleClass += ` text-green-300`;
-      } else { // mode === '100'
+      } else {
         const showIn100xGreen = isHovered || isFirstSelectedCol || isLastSelectedCol || isFirstSelectedRow || isLastSelectedRow;
         if (showIn100xGreen) {
           effectiveDisplayContent = actualValue;
@@ -116,7 +113,7 @@ const CellComponent: React.FC<CellProps> = React.memo(({
           textStyleClass += ` text-transparent`;
         }
       }
-    } else { // Blank data cell
+    } else {
       effectiveDisplayContent = "";
       textStyleClass += ` text-transparent`;
       ariaLabel = 'Grid cell';
@@ -124,7 +121,6 @@ const CellComponent: React.FC<CellProps> = React.memo(({
   }
   
   const cellFlexStyles = "flex items-center justify-center";
-  // For 100x mode, padding is minimal to allow text to "overflow" visually more easily
   const paddingClass = "p-0"; 
 
   const finalStyle = {...style};
@@ -173,7 +169,7 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   onReset,
 }) => {
   const maxX = mode === '10' ? 10 : 100;
-  const maxY = mode === '10' ? 20 : (mode === '100' ? 100 : 200); // maxY is 100 for 100x mode
+  const maxY = mode === '10' ? 20 : (mode === '100' ? 100 : 200);
 
   const prevSelectedTopRef = useRef<number | null>(null);
   const prevSelectedLeftRef = useRef<number | null>(null);
@@ -189,7 +185,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
     const newYellowCells = new Set<string>();
     let hasNewYellowCells = false;
     if (selectedTop !== null && selectedLeft !== null) {
-      // Determine the previous selected area for comparison
       const prevTop = prevSelectedTopRef.current;
       const prevLeft = prevSelectedLeftRef.current;
 
@@ -204,7 +199,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
           }
 
           if (previousValue === null || currentValue !== previousValue) {
-            // Cell is new or its value changed
             newYellowCells.add(cellKey);
             hasNewYellowCells = true;
           }
@@ -215,7 +209,7 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
       setYellowHighlightedCells(newYellowCells);
       yellowHighlightTimerRef.current = setTimeout(() => setYellowHighlightedCells(new Set()), YELLOW_HIGHLIGHT_DURATION_MS);
     } else if (selectedTop === null || selectedLeft === null) {
-      setYellowHighlightedCells(new Set()); // Clear if selection is cleared
+      setYellowHighlightedCells(new Set());
     }
     prevSelectedTopRef.current = selectedTop;
     prevSelectedLeftRef.current = selectedLeft;
@@ -231,10 +225,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   }, [mode]);
 
   const getCellBorderClasses = (rowNum: number, colNum: number, currentMode: GridMode, isYellow: boolean): string => {
-    if (currentMode === '100') return ""; // No borders for any cells in 100x mode
+    if (currentMode === '100') return "";
 
-    // Logic for 10x mode borders
-    if (rowNum === 0 || colNum === 0) return ""; // Headers in 10x mode handled by their own styles (no explicit borders from this func)
+    if (rowNum === 0 || colNum === 0) return ""; 
     if (isYellow) return "border-t border-l border-yellow-500/80";
     
     const baseBorderColor = "border-white";
@@ -245,19 +238,74 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
 
   const headerDim = mode === '10' ? HEADER_DIM_MODE_10 : HEADER_DIM_MODE_100;
   const isSelectionActive = selectedTop !== null && selectedLeft !== null;
-
   const cornerCellKey = "header-corner-0";
+  
+  // Loop for Rows: Render from maxY down to 1 to invert grid visually (Row 1 at bottom)
+  const rowElements = [];
+  for (let r = maxY; r >= 1; r--) {
+    // Left Header for the current row
+    const headerKey = `header-left-${r}`;
+    const isHeaderDimmed = isSelectionActive;
+    rowElements.push(
+      <CellComponent key={headerKey} content={r} actualValue={r}
+        isHovered={hoveredCellKey === headerKey} onMouseEnter={() => handleMouseEnter(headerKey)}
+        onClick={() => onSelectLeft(r)} isHeader isLeftHeader maxY={maxY} isSelected={selectedLeft === r}
+        mode={mode} borderClasses="" baseSizeClasses="w-full h-full" isDimmed={isHeaderDimmed} />
+    );
+
+    // Data Cells
+    for (let c = 1; c <= maxX; c++) {
+      const cellKey = `cell-${r}-${c}`;
+      const isGreenHighlighted = selectedTop !== null && selectedLeft !== null && r <= selectedLeft && c <= selectedTop;
+      const isYellow = yellowHighlightedCells.has(cellKey);
+      const isMaxValueCell = selectedTop !== null && selectedLeft !== null && r === selectedLeft && c === selectedTop;
+      const isDimmed = isSelectionActive && !isMaxValueCell;
+      
+      let cellValue: string | number = ""; 
+      if ((isGreenHighlighted || isYellow) && selectedTop !== null) {
+         cellValue = (r - 1) * selectedTop + c;
+      }
+
+      const isFirstSelRow = selectedLeft !== null && r === 1;
+      const isLastSelRow = selectedLeft !== null && r === selectedLeft;
+      const isFirstSelCol = selectedTop !== null && c === 1;
+      const isLastSelCol = selectedTop !== null && c === selectedTop;
+
+      let borderClasses = getCellBorderClasses(r, c, mode, isYellow);
+      if (isLastSelCol && isGreenHighlighted) {
+        borderClasses = `${borderClasses} border-r border-green-400`.trim();
+      }
+
+      rowElements.push(
+        <CellComponent key={cellKey} content={cellValue} actualValue={cellValue}
+          isHovered={hoveredCellKey === cellKey} onMouseEnter={() => handleMouseEnter(cellKey)}
+          isHighlightedGreen={isGreenHighlighted} isChangeHighlightedYellow={isYellow}
+          borderClasses={borderClasses}
+          mode={mode} baseSizeClasses="aspect-square" 
+          className={`row-${r} col-${c}`}
+          isFirstSelectedRow={isFirstSelRow} isLastSelectedRow={isLastSelRow}
+          isFirstSelectedCol={isFirstSelCol} isLastSelectedCol={isLastSelCol}
+          isMaxValueCell={isMaxValueCell}
+          isDimmed={isDimmed}
+        />
+      );
+    }
+  }
 
   return (
     <div
       className="grid bg-black/60 select-none w-full"
       style={{
         gridTemplateColumns: `${headerDim} repeat(${maxX}, minmax(0, 1fr))`,
-        gridTemplateRows: `${headerDim} repeat(${maxY}, auto)`, // 'auto' allows aspect-square data cells to define row height
+        gridTemplateRows: `repeat(${maxY}, auto) ${headerDim}`, // Rows first, then Header at bottom
       }}
       role="grid" aria-rowcount={maxY + 1} aria-colcount={maxX + 1}
       onMouseLeave={handleMouseLeaveGrid}
     >
+      {/* Rows are pre-calculated to handle reverse order */}
+      {rowElements}
+
+      {/* Bottom Axis (was Top Headers) */}
       {/* Corner Cell */}
       <CellComponent 
           content="0" actualValue="0" isHovered={hoveredCellKey === cornerCellKey}
@@ -270,68 +318,18 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
           style={{width: headerDim, height: headerDim}}
           isDimmed={isSelectionActive}
       />
-
-      {/* Top Headers */}
+      
+      {/* Bottom Headers */}
       {Array.from({ length: maxX }, (_, i) => i + 1).map(num => {
-        const cellKey = `header-top-${num}`;
+        const cellKey = `header-bottom-${num}`;
         const isDimmed = isSelectionActive;
+        const borderClasses = mode === '10' ? "border-t border-white/30" : "";
         return <CellComponent key={cellKey} content={num} actualValue={num}
           isHovered={hoveredCellKey === cellKey} onMouseEnter={() => handleMouseEnter(cellKey)}
-          onClick={() => onSelectTop(num)} isHeader isTopHeader maxX={maxX} isSelected={selectedTop === num}
-          mode={mode} borderClasses="" baseSizeClasses="w-full h-full" isDimmed={isDimmed} />;
+          onClick={() => onSelectTop(num)} isHeader isBottomHeader maxX={maxX} isSelected={selectedTop === num}
+          mode={mode} borderClasses={borderClasses} baseSizeClasses="w-full h-full" isDimmed={isDimmed} />;
       })}
 
-      {/* Left Headers & Data Cells */}
-      {Array.from({ length: maxY }, (_, r) => r + 1).map(rowNum => (
-        <React.Fragment key={`row-wrapper-${rowNum}`}>
-          {/* Left Header for the current row */}
-          {(() => {
-            const cellKey = `header-left-${rowNum}`;
-            const isDimmed = isSelectionActive;
-            return <CellComponent key={cellKey} content={rowNum} actualValue={rowNum}
-              isHovered={hoveredCellKey === cellKey} onMouseEnter={() => handleMouseEnter(cellKey)}
-              onClick={() => onSelectLeft(rowNum)} isHeader isLeftHeader maxY={maxY} isSelected={selectedLeft === rowNum}
-              mode={mode} borderClasses="" baseSizeClasses="w-full h-full" isDimmed={isDimmed} />;
-          })()}
-
-          {/* Data Cells for the current row */}
-          {Array.from({ length: maxX }, (_, c) => c + 1).map(colNum => {
-            const cellKey = `cell-${rowNum}-${colNum}`;
-            const isGreenHighlighted = selectedTop !== null && selectedLeft !== null && rowNum <= selectedLeft && colNum <= selectedTop;
-            const isYellow = yellowHighlightedCells.has(cellKey);
-            const isMaxValueCell = selectedTop !== null && selectedLeft !== null && rowNum === selectedLeft && colNum === selectedTop;
-            const isDimmed = isSelectionActive && !isMaxValueCell;
-            
-            let cellValue: string | number = ""; 
-            if ((isGreenHighlighted || isYellow) && selectedTop !== null) { // Calculate value if green or yellow
-               cellValue = (rowNum - 1) * selectedTop + colNum;
-            }
-
-            // Determine if it's a boundary cell within the selection for text visibility in 100x mode and borders.
-            const isFirstSelRow = selectedLeft !== null && rowNum === 1;
-            const isLastSelRow = selectedLeft !== null && rowNum === selectedLeft;
-            const isFirstSelCol = selectedTop !== null && colNum === 1;
-            const isLastSelCol = selectedTop !== null && colNum === selectedTop;
-
-            let borderClasses = getCellBorderClasses(rowNum, colNum, mode, isYellow);
-            if (isLastSelCol && isGreenHighlighted) {
-              borderClasses = `${borderClasses} border-r border-green-400`.trim();
-            }
-
-            return <CellComponent key={cellKey} content={cellValue} actualValue={cellValue}
-              isHovered={hoveredCellKey === cellKey} onMouseEnter={() => handleMouseEnter(cellKey)}
-              isHighlightedGreen={isGreenHighlighted} isChangeHighlightedYellow={isYellow}
-              borderClasses={borderClasses}
-              mode={mode} baseSizeClasses="aspect-square" 
-              className={`row-${rowNum} col-${colNum}`}
-              isFirstSelectedRow={isFirstSelRow} isLastSelectedRow={isLastSelRow}
-              isFirstSelectedCol={isFirstSelCol} isLastSelectedCol={isLastSelCol}
-              isMaxValueCell={isMaxValueCell}
-              isDimmed={isDimmed}
-              />;
-          })}
-        </React.Fragment>
-      ))}
     </div>
   );
 };
