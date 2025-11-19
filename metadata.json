@@ -1,0 +1,6 @@
+{
+  "name": "Multiplication Grid Learner",
+  "description": "An interactive multiplication learning tool featuring a customizable grid (10x20 or 100x200) to help children visualize and practice multiplication. Select numbers from the top and side to see the corresponding area filled with a sequence of numbers.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
