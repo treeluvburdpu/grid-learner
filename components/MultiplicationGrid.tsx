@@ -50,6 +50,8 @@ const CellComponent: React.FC<CellProps> = React.memo(({
   let interactiveClasses = onClick ? "cursor-pointer" : "";
   let ariaLabel = "";
 
+
+  
   // Font size calculator based on character length
   const getDataFontSize = (val: number | string) => {
     const strVal = String(val);
@@ -125,9 +127,6 @@ const CellComponent: React.FC<CellProps> = React.memo(({
     }
   }
   
-  const cellFlexStyles = "flex items-center justify-center";
-  const paddingClass = "p-0"; 
-
   const finalStyle = {...style};
   if (isMaxValueCell) {
     finalStyle.outline = '2px solid #22c55e';
@@ -138,7 +137,7 @@ const CellComponent: React.FC<CellProps> = React.memo(({
 
   return (
     <div
-      className={`${cellFlexStyles} ${baseSizeClasses || 'w-full h-full'} ${textStyleClass} ${bgClass} ${paddingClass} ${borderClasses} ${interactiveClasses} ${className || ''} overflow-visible transition-opacity duration-300 ${opacityClass}`}
+      className={`grid-cell-base ${baseSizeClasses || 'w-full h-full'} ${textStyleClass} ${bgClass} ${borderClasses} ${interactiveClasses} ${className || ''} ${opacityClass}`}
       style={finalStyle}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -256,7 +255,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   }, [mode]);
 
   const getCellBorderClasses = (rowNum: number, colNum: number, isYellow: boolean): string => {
-    if (mode === 'adder') return "border border-gray-800"; // Simpler borders for adder
     if (rowNum === 0 || colNum === 0) return ""; 
     if (isYellow) return "border-t border-l border-yellow-500/80";
     
@@ -360,15 +358,16 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
              rowElements.push(
                 <CellComponent key={cellKey} content="" actualValue=""
                     isHovered={false}
-                    borderClasses="border border-gray-900" // Very subtle border for spacers
+                    borderClasses="" // No border for spacers
                     mode={mode} baseSizeClasses="aspect-square" 
+                    className="adder-cell-no-border"
                 />
             );
         } else {
             // Even columns (Inputs + Sum)
             const isInputSlot = (c === RED_COL || c === GREEN_COL || c === BLUE_COL) && r <= 10;
             // Show grid lines for input slots even if empty, so user knows where to click
-            const border = isInputSlot || c === SUM_COL ? "border border-gray-700" : "border-none";
+            const border = isInputSlot || c === SUM_COL ? "adder-cell-border" : "border-none";
             
             rowElements.push(
                 <CellComponent key={cellKey} content={cellContent} actualValue={cellContent as string}
@@ -425,7 +424,7 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
 
   return (
     <div
-      className="grid bg-black/60 select-none w-full"
+      className="grid bg-black/60 select-none w-full grid-no-gap"
       style={{
         gridTemplateColumns: `${HEADER_DIM} repeat(${maxX}, minmax(0, 1fr))`,
         gridTemplateRows: `repeat(${maxY}, auto) ${HEADER_DIM}`, // Rows first, then Header at bottom
