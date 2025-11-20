@@ -13,6 +13,8 @@ interface CellProps {
   onClick?: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onCellMouseDown?: (event: React.MouseEvent) => void;
+  onCellMouseUp?: (event: React.MouseEvent) => void;
   isHeader?: boolean;
   isSelected?: boolean;
   isHighlightedGreen?: boolean;
@@ -38,6 +40,7 @@ interface CellProps {
 const CellComponent: React.FC<CellProps> = React.memo(({
   content, actualValue, isHovered,
   className, onClick, onMouseEnter, onMouseLeave,
+  onCellMouseDown, onCellMouseUp,
   isHeader, isSelected, isHighlightedGreen, isChangeHighlightedYellow,
   borderClasses, mode, baseSizeClasses, style,
   isBottomHeader, isLeftHeader, maxX, maxY,
@@ -142,6 +145,8 @@ const CellComponent: React.FC<CellProps> = React.memo(({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onMouseDown={onCellMouseDown}
+      onMouseUp={onCellMouseUp}
       role={onClick ? "button" : "gridcell"}
       tabIndex={onClick ? 0 : -1}
       aria-pressed={isHeader && isSelected ? true : undefined}
@@ -187,9 +192,30 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   const [yellowHighlightedCells, setYellowHighlightedCells] = useState<Set<string>>(new Set());
   const yellowHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredCellKey, setHoveredCellKey] = useState<string | null>(null);
+  const [isSumColumnShifted, setIsSumColumnShifted] = useState(false);
+  const CELL_HEIGHT_REM = parseFloat(HEADER_DIM); // Extract numeric value from '3rem'
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback((key: string) => setHoveredCellKey(key), []);
   const handleMouseLeaveGrid = useCallback(() => setHoveredCellKey(null), []);
+
+  const handleMouseDownSumCol = useCallback(() => {
+    if (mode === 'adder') {
+      holdTimerRef.current = setTimeout(() => {
+        setIsSumColumnShifted(true);
+      }, 500);
+    }
+  }, [mode]);
+
+  const handleMouseUpSumCol = useCallback(() => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (isSumColumnShifted) {
+      setIsSumColumnShifted(false);
+    }
+  }, [isSumColumnShifted]);
 
   const formatValue = (val: number) => {
     if (mode === 'decimal') {
@@ -369,15 +395,29 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
             // Show grid lines for input slots even if empty, so user knows where to click
             const border = isInputSlot || c === SUM_COL ? "adder-cell-border" : "border-none";
             
+            let cellStyle: React.CSSProperties = {};
+            if (isSumColumnShifted) {
+                if (c === GREEN_COL && r <= gVal) {
+                    const shiftAmount = rVal * CELL_HEIGHT_REM;
+                    cellStyle.transform = `translateY(-${shiftAmount}rem)`;
+                } else if (c === BLUE_COL && r <= bVal) {
+                    const shiftAmount = (rVal + gVal) * CELL_HEIGHT_REM;
+                    cellStyle.transform = `translateY(-${shiftAmount}rem)`;
+                }
+            }
+
             rowElements.push(
                 <CellComponent key={cellKey} content={cellContent} actualValue={cellContent as string}
                     isHovered={isInputSlot && hoveredCellKey === cellKey} 
                     onMouseEnter={() => isInputSlot && handleMouseEnter(cellKey)}
                     onClick={onClickHandler}
+                    onCellMouseDown={c === SUM_COL ? handleMouseDownSumCol : undefined}
+                    onCellMouseUp={c === SUM_COL ? handleMouseUpSumCol : undefined}
                     adderColor={cellAdderColor}
                     borderClasses={border}
                     mode={mode} baseSizeClasses="aspect-square" 
                     className={`row-${r} col-${c} ${isInputSlot ? 'hover:bg-gray-800' : ''}`}
+                    style={cellStyle}
                 />
             );
         }
