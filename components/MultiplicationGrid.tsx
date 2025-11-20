@@ -401,9 +401,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
             let cellStyle: React.CSSProperties = {};
             if (isSumColumnShifted) {
                 if (c === GREEN_COL && r <= gVal) {
-                    cellStyle.transform = `translate3d(0, calc(-1 * ${rVal} * 100%), 0)`;
+                    cellStyle.transform = `translate3d(0, calc(-1 * ${rVal} * 105%), 0)`;
                 } else if (c === BLUE_COL && r <= bVal) {
-                    cellStyle.transform = `translate3d(0, calc(-1 * ${rVal + gVal} * 100%), 0)`;
+                    cellStyle.transform = `translate3d(0, calc(-1 * ${rVal + gVal} * 105%), 0)`;
                 }
             }
 
