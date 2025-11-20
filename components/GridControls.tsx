@@ -29,6 +29,16 @@ export const GridControls: React.FC<GridControlsProps> = ({ currentMode, onModeC
       >
         10x20
       </button>
+      <button
+        onClick={() => onModeChange('adder')}
+        className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors
+          ${currentMode === 'adder'
+            ? 'bg-purple-500 hover:bg-purple-400 text-white ring-2 ring-purple-300 ring-offset-2 ring-offset-black'
+            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+      >
+        Sum
+      </button>
     </div>
   );
 };

@@ -6,9 +6,37 @@ interface CurrentMultiplicationDisplayProps {
   selectedTop: number | null;
   showZeroResult: boolean;
   gridMode: GridMode;
+  adderValues?: { red: number | null; green: number | null; blue: number | null };
 }
 
-export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplayProps> = ({ selectedLeft, selectedTop, showZeroResult, gridMode }) => {
+export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplayProps> = ({ 
+  selectedLeft, 
+  selectedTop, 
+  showZeroResult, 
+  gridMode,
+  adderValues
+}) => {
+  
+  if (gridMode === 'adder' && adderValues) {
+    const r = adderValues.red || 0;
+    const g = adderValues.green || 0;
+    const b = adderValues.blue || 0;
+    const sum = r + g + b;
+
+    if (sum === 0 && !showZeroResult) return null;
+
+    return (
+      <span className="font-mono font-bold text-lg sm:text-2xl md:text-3xl ml-2 whitespace-nowrap flex gap-2">
+        <span className="text-red-400">{r}</span>
+        <span className="text-gray-400">+</span>
+        <span className="text-green-400">{g}</span>
+        <span className="text-gray-400">+</span>
+        <span className="text-blue-400">{b}</span>
+        <span className="text-gray-300">= {sum}</span>
+      </span>
+    );
+  }
+
   let displayString = "";
   let result: number | string | null = null;
 
