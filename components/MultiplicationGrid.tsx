@@ -15,6 +15,8 @@ interface CellProps {
   onMouseLeave?: () => void;
   onCellMouseDown?: (event: React.MouseEvent) => void;
   onCellMouseUp?: (event: React.MouseEvent) => void;
+  onTouchStart?: (event: React.TouchEvent) => void;
+  onTouchEnd?: (event: React.TouchEvent) => void;
   isHeader?: boolean;
   isSelected?: boolean;
   isHighlightedGreen?: boolean;
@@ -40,7 +42,7 @@ interface CellProps {
 const CellComponent: React.FC<CellProps> = React.memo(({
   content, actualValue, isHovered,
   className, onClick, onMouseEnter, onMouseLeave,
-  onCellMouseDown, onCellMouseUp,
+  onCellMouseDown, onCellMouseUp, onTouchStart, onTouchEnd,
   isHeader, isSelected, isHighlightedGreen, isChangeHighlightedYellow,
   borderClasses, mode, baseSizeClasses, style,
   isBottomHeader, isLeftHeader, maxX, maxY,
@@ -147,6 +149,8 @@ const CellComponent: React.FC<CellProps> = React.memo(({
       onMouseLeave={onMouseLeave}
       onMouseDown={onCellMouseDown}
       onMouseUp={onCellMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       role={onClick ? "button" : "gridcell"}
       tabIndex={onClick ? 0 : -1}
       aria-pressed={isHeader && isSelected ? true : undefined}
@@ -193,7 +197,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   const yellowHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredCellKey, setHoveredCellKey] = useState<string | null>(null);
   const [isSumColumnShifted, setIsSumColumnShifted] = useState(false);
-  const CELL_HEIGHT_REM = parseFloat(HEADER_DIM); // Extract numeric value from '3rem'
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = useCallback((key: string) => setHoveredCellKey(key), []);
@@ -398,11 +401,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
             let cellStyle: React.CSSProperties = {};
             if (isSumColumnShifted) {
                 if (c === GREEN_COL && r <= gVal) {
-                    const shiftAmount = rVal * CELL_HEIGHT_REM;
-                    cellStyle.transform = `translateY(-${shiftAmount}rem)`;
+                    cellStyle.transform = `translateY(calc(-1 * ${rVal} * 100%))`;
                 } else if (c === BLUE_COL && r <= bVal) {
-                    const shiftAmount = (rVal + gVal) * CELL_HEIGHT_REM;
-                    cellStyle.transform = `translateY(-${shiftAmount}rem)`;
+                    cellStyle.transform = `translateY(calc(-1 * ${rVal + gVal} * 100%))`;
                 }
             }
 
@@ -413,6 +414,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
                     onClick={onClickHandler}
                     onCellMouseDown={c === SUM_COL ? handleMouseDownSumCol : undefined}
                     onCellMouseUp={c === SUM_COL ? handleMouseUpSumCol : undefined}
+                    onTouchStart={c === SUM_COL ? handleMouseDownSumCol : undefined}
+                    onTouchEnd={c === SUM_COL ? handleMouseUpSumCol : undefined}
                     adderColor={cellAdderColor}
                     borderClasses={border}
                     mode={mode} baseSizeClasses="aspect-square" 
