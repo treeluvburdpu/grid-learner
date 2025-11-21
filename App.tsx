@@ -5,7 +5,7 @@ import { CurrentMultiplicationDisplay } from './components/CurrentMultiplication
 import type { GridMode } from './types';
 
 const App: React.FC = () => {
-    const [gridMode, setGridMode] = useState<GridMode>('10');
+    const [gridMode, setGridMode] = useState<GridMode>('adder');
 
     // Multiplication Mode State
     const [selectedTop, setSelectedTop] = useState<number | null>(null);
