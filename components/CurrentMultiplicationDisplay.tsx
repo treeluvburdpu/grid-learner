@@ -59,16 +59,17 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
   };
 
   if (showZeroResult) {
-    displayString = `0 x 0`;
-    result = 0;
+    const zeroVal = gridMode === 'decimal' ? formatNumber(0) : 0;
+    displayString = `${zeroVal} x ${zeroVal}`;
+    result = gridMode === 'decimal' ? formatResult(0, 0) : 0;
   } else if (selectedLeft !== null && selectedTop !== null) {
     displayString = `${formatNumber(selectedLeft)} x ${formatNumber(selectedTop)}`;
     result = formatResult(selectedLeft, selectedTop);
   } else if (selectedLeft !== null) {
-    displayString = `${formatNumber(selectedLeft)} x 0`;
+    displayString = `${formatNumber(selectedLeft)} x ${gridMode === 'decimal' ? formatNumber(0) : 0}`;
     result = 0;
   } else if (selectedTop !== null) {
-    displayString = `0 x ${formatNumber(selectedTop)}`;
+    displayString = `${gridMode === 'decimal' ? formatNumber(0) : 0} x ${formatNumber(selectedTop)}`;
     result = 0;
   }
 
@@ -79,7 +80,11 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
   return (
     <span className="font-mono font-bold text-lg sm:text-2xl md:text-3xl ml-2 whitespace-nowrap">
       <span className="text-green-400">{displayString}</span>
-      {result !== null && <span className="text-gray-300"> = {result}</span>}
+      {result !== null && (
+        <span className="text-gray-300">
+          = {gridMode === 'decimal' && typeof result === 'number' ? result.toFixed(2) : result}
+        </span>
+      )}
     </span>
   );
 };

@@ -6,5 +6,10 @@ export default defineConfig({
   base: './', // Ensures assets link correctly on GitHub Pages
   build: {
     outDir: 'dist',
-  }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './setupTests.ts',
+  },
 })
