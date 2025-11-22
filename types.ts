@@ -1,1 +1,1 @@
-export type GridMode = '10' | 'decimal' | 'adder';
+export type GridMode = '10' | 'decimal' | 'adder' | 'diff' | 'counting';
