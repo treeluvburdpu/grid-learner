@@ -9,14 +9,13 @@ interface CurrentMultiplicationDisplayProps {
   adderValues?: { red: number | null; green: number | null; blue: number | null };
 }
 
-export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplayProps> = ({ 
-  selectedLeft, 
-  selectedTop, 
-  showZeroResult, 
+export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplayProps> = ({
+  selectedLeft,
+  selectedTop,
+  showZeroResult,
   gridMode,
-  adderValues
+  adderValues,
 }) => {
-  
   if (gridMode === 'adder' && adderValues) {
     const r = adderValues.red || 0;
     const g = adderValues.green || 0;
@@ -37,7 +36,7 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
     );
   }
 
-  let displayString = "";
+  let displayString = '';
   let result: number | string | null = null;
 
   const formatNumber = (num: number) => {
@@ -73,7 +72,7 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
     result = 0;
   }
 
-  if (displayString === "") {
+  if (displayString === '') {
     return null;
   }
 

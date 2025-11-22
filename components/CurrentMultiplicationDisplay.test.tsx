@@ -114,7 +114,7 @@ describe('CurrentMultiplicationDisplay', () => {
     render(
       <CurrentMultiplicationDisplay
         selectedLeft={5} // Represents 0.5
-        selectedTop={7}  // Represents 0.7
+        selectedTop={7} // Represents 0.7
         showZeroResult={false}
         gridMode="decimal"
         adderValues={undefined}

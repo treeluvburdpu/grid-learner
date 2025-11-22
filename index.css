@@ -1,30 +1,30 @@
 /* index.css */
 .grid-cell-base {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    overflow: visible;
-    transition-property: opacity, transform; /* Add transform to transition */
-    transition-duration: 300ms;
-    transition-timing-function: ease-in-out; /* For smooth animation */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: visible;
+  transition-property: opacity, transform; /* Add transform to transition */
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out; /* For smooth animation */
 }
 
 /* Base styles for all cells when in adder mode */
 .adder-cell-border {
-    border-width: 1px;
-    border-style: solid;
-    border-color: #374151; /* gray-700 */
+  border-width: 1px;
+  border-style: solid;
+  border-color: #374151; /* gray-700 */
 }
 
 /* Styles for cells that should have no border in adder mode (e.g., odd columns, spacers) */
 .adder-cell-no-border {
-    border-width: 1px;
-    border-style: solid;
-    border-color: transparent !important;
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent !important;
 }
 
 /* Ensure no gaps between grid cells */
 .grid-no-gap {
-    gap: 0px;
+  gap: 0px;
 }
