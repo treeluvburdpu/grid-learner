@@ -111,6 +111,9 @@ const CellComponent: React.FC<CellProps> = React.memo(({
             } else if (adderColor === 'blue') {
                 bgClass = "bg-blue-900/40 border-blue-500/30";
                 textStyleClass += " text-blue-400";
+            } else if (adderColor === 'darkgrey') { // Added this block
+                bgClass = "bg-gray-950/40 border-gray-600/30"; // Darker background
+                textStyleClass += " text-gray-700"; // Even darker text
             }
             // Override border classes for adder colored cells to be cleaner
             borderClasses = `border ${borderClasses.split(' ').filter(c => !c.startsWith('border-')).join(' ')}`;
@@ -376,6 +379,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
                         } else {
                             cellAdderColor = 'blue';
                         }
+                    } else if (r <= maxY) { // Added this else if block for placeholder
+                        cellContent = r;
+                        cellAdderColor = 'darkgrey';
                     }
                 }
 
