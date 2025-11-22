@@ -21,6 +21,17 @@ export const GridControls: React.FC<GridControlsProps> = ({ currentMode, onModeC
         Sum
       </button>
       <button
+        onClick={() => onModeChange('diff')}
+        className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors
+                    ${
+                      currentMode === 'diff'
+                        ? 'bg-orange-500 hover:bg-orange-400 text-white ring-2 ring-orange-300 ring-offset-2 ring-offset-black'
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+      >
+        Diff
+      </button>
+      <button
         onClick={() => onModeChange('10')}
         className={`px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors
                   ${

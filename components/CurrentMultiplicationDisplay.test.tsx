@@ -181,4 +181,62 @@ describe('CurrentMultiplicationDisplay', () => {
     expect(screen.getByText('0.0 x 0.0', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('= 0.00', { exact: false })).toBeInTheDocument();
   });
+
+  // Test cases for Diff Mode
+  it('displays correct integer difference for diff mode', () => {
+    render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={7}
+        selectedTop={3}
+        showZeroResult={false}
+        gridMode="diff"
+        adderValues={undefined}
+      />
+    );
+    expect(screen.getByText('7 - 3', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= 4', { exact: false })).toBeInTheDocument();
+  });
+
+  it('displays correct decimal difference for diff mode', () => {
+    render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={7} // Represents 0.7
+        selectedTop={3}  // Represents 0.3
+        showZeroResult={false}
+        gridMode="diff"
+        adderValues={undefined}
+      />
+    );
+    // |0.7 - 0.3| = 0.4
+    expect(screen.getByText('0.7 - 0.3', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= 0.40', { exact: false })).toBeInTheDocument();
+  });
+
+  it('displays 0.0 when only selectedLeft is present in decimal diff mode', () => {
+    render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={5}
+        selectedTop={null}
+        showZeroResult={false}
+        gridMode="diff"
+        adderValues={undefined}
+      />
+    );
+    expect(screen.getByText('0.5 - 0.0', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= 0.50', { exact: false })).toBeInTheDocument();
+  });
+
+  it('displays "0.0 - 0.0 = 0.00" when showZeroResult is true in decimal diff mode', () => {
+    render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={null}
+        selectedTop={null}
+        showZeroResult={true}
+        gridMode="diff"
+        adderValues={undefined}
+      />
+    );
+    expect(screen.getByText('0.0 - 0.0', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= 0.00', { exact: false })).toBeInTheDocument();
+  });
 });

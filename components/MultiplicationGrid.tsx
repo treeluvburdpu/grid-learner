@@ -2,6 +2,7 @@ import React from 'react';
 import type { GridMode } from '../types';
 import { AdderGrid } from './grids/AdderGrid';
 import { MultiplicationGridCore } from './grids/MultiplicationGridCore';
+import { DiffGrid } from './grids/DiffGrid'; // Import DiffGrid
 
 interface MultiplicationGridProps {
   mode: GridMode;
@@ -27,6 +28,17 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   switch (mode) {
     case 'adder':
       return <AdderGrid mode={mode} onReset={onReset} adderValues={adderValues} onAdderChange={onAdderChange} />;
+    case 'diff': // Add case for diff mode
+      return (
+        <DiffGrid
+          mode={mode}
+          selectedTop={selectedTop}
+          selectedLeft={selectedLeft}
+          onSelectTop={onSelectTop}
+          onSelectLeft={onSelectLeft}
+          onReset={onReset}
+        />
+      );
     case '10':
     case 'decimal':
       return (

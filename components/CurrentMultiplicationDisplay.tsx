@@ -39,37 +39,56 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
   let displayString = '';
   let result: number | string | null = null;
 
+  const getOperationSymbol = (mode: GridMode) => {
+    if (mode === 'diff') return '-';
+    return 'x';
+  };
+
   const formatNumber = (num: number) => {
-    if (gridMode === 'decimal') {
-      // Headers are formatted as num/10 (e.g. 1 -> 0.1)
+    if (gridMode === 'decimal' || gridMode === 'diff') { // Diff also uses decimal formatting for headers
       return (num / 10).toFixed(1);
     }
     return num.toString();
   };
 
-  const formatResult = (left: number, top: number) => {
-    if (gridMode === 'decimal') {
-      // Matching grid calculation: (Left Index * Top Index) / 100
-      // This represents 0.01 per cell.
-      const val = (left * top) / 100;
-      return parseFloat(val.toFixed(2));
+  const calculateResult = (left: number, top: number) => {
+    let val: number;
+    if (gridMode === 'diff') {
+        if (gridMode === 'decimal') {
+            val = Math.abs((left / 10) - (top / 10));
+            return parseFloat(val.toFixed(2));
+        }
+        val = Math.abs(left - top);
+        return val;
+    } else { // '10' or 'decimal'
+      if (gridMode === 'decimal') {
+        val = (left * top) / 100;
+        return parseFloat(val.toFixed(2));
+      }
+      val = left * top;
+      return val;
     }
-    return (left * top).toString();
   };
 
   if (showZeroResult) {
-    const zeroVal = gridMode === 'decimal' ? formatNumber(0) : 0;
-    displayString = `${zeroVal} x ${zeroVal}`;
-    result = gridMode === 'decimal' ? formatResult(0, 0) : 0;
+    const zeroVal = (gridMode === 'decimal' || gridMode === 'diff') ? formatNumber(0) : 0;
+    const opSymbol = getOperationSymbol(gridMode);
+    displayString = `${zeroVal} ${opSymbol} ${zeroVal}`;
+    result = (gridMode === 'decimal' || gridMode === 'diff') ? calculateResult(0, 0) : 0;
   } else if (selectedLeft !== null && selectedTop !== null) {
-    displayString = `${formatNumber(selectedLeft)} x ${formatNumber(selectedTop)}`;
-    result = formatResult(selectedLeft, selectedTop);
+    const opSymbol = getOperationSymbol(gridMode);
+    displayString = `${formatNumber(selectedLeft)} ${opSymbol} ${formatNumber(selectedTop)}`;
+    result = calculateResult(selectedLeft, selectedTop);
   } else if (selectedLeft !== null) {
-    displayString = `${formatNumber(selectedLeft)} x ${gridMode === 'decimal' ? formatNumber(0) : 0}`;
-    result = 0;
+    const zeroVal = (gridMode === 'decimal' || gridMode === 'diff') ? formatNumber(0) : 0;
+    const opSymbol = getOperationSymbol(gridMode);
+    displayString = `${formatNumber(selectedLeft)} ${opSymbol} ${zeroVal}`;
+    result = (gridMode === 'decimal' || gridMode === 'diff') ? calculateResult(selectedLeft, 0) : 0;
   } else if (selectedTop !== null) {
-    displayString = `${gridMode === 'decimal' ? formatNumber(0) : 0} x ${formatNumber(selectedTop)}`;
-    result = 0;
+    const zeroVal = (gridMode === 'decimal' || gridMode === 'diff') ? formatNumber(0) : 0;
+    const opSymbol = getOperationSymbol(gridMode);
+    displayString = `${zeroVal} ${opSymbol} ${formatNumber(selectedTop)}`;
+    result = (gridMode === 'decimal' || gridMode === 'diff') ? calculateResult(0, selectedTop) : 0;
   }
 
   if (displayString === '') {
@@ -81,7 +100,7 @@ export const CurrentMultiplicationDisplay: React.FC<CurrentMultiplicationDisplay
       <span className="text-green-400">{displayString}</span>
       {result !== null && (
         <span className="text-gray-300">
-          = {gridMode === 'decimal' && typeof result === 'number' ? result.toFixed(2) : result}
+          = {(gridMode === 'decimal' || gridMode === 'diff') && typeof result === 'number' ? result.toFixed(2) : result}
         </span>
       )}
     </span>

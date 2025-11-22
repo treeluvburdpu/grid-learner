@@ -1,9 +1,8 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MultiplicationGrid } from './MultiplicationGrid';
 import { MultiplicationGridCore } from './grids/MultiplicationGridCore';
 import { AdderGrid } from './grids/AdderGrid';
+import { DiffGrid } from './grids/DiffGrid'; // Import DiffGrid
 import type { GridMode } from '../types';
 
 // Mock the child components to avoid deep rendering and focus on the wrapper's logic
@@ -13,6 +12,10 @@ vi.mock('./grids/MultiplicationGridCore', () => ({
 
 vi.mock('./grids/AdderGrid', () => ({
   AdderGrid: vi.fn(() => <div>AdderGrid Mock</div>),
+}));
+
+vi.mock('./grids/DiffGrid', () => ({ // Mock DiffGrid
+  DiffGrid: vi.fn(() => <div>DiffGrid Mock</div>),
 }));
 
 describe('MultiplicationGrid Wrapper', () => {
@@ -34,6 +37,7 @@ describe('MultiplicationGrid Wrapper', () => {
     render(<MultiplicationGrid {...commonProps} mode="adder" />);
     expect(screen.getByText('AdderGrid Mock')).toBeInTheDocument();
     expect(MultiplicationGridCore).not.toHaveBeenCalled();
+    expect(DiffGrid).not.toHaveBeenCalled(); // Also assert DiffGrid not called
     expect(AdderGrid).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'adder',
@@ -45,10 +49,29 @@ describe('MultiplicationGrid Wrapper', () => {
     );
   });
 
+  it('renders DiffGrid when mode is "diff"', () => { // New test case for DiffGrid
+    render(<MultiplicationGrid {...commonProps} mode="diff" />);
+    expect(screen.getByText('DiffGrid Mock')).toBeInTheDocument();
+    expect(AdderGrid).not.toHaveBeenCalled();
+    expect(MultiplicationGridCore).not.toHaveBeenCalled();
+    expect(DiffGrid).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'diff',
+        selectedTop: commonProps.selectedTop,
+        selectedLeft: commonProps.selectedLeft,
+        onSelectTop: commonProps.onSelectTop,
+        onSelectLeft: commonProps.onSelectLeft,
+        onReset: commonProps.onReset,
+      }),
+      {}
+    );
+  });
+
   it('renders MultiplicationGridCore when mode is "10"', () => {
     render(<MultiplicationGrid {...commonProps} mode="10" />);
     expect(screen.getByText('MultiplicationGridCore Mock')).toBeInTheDocument();
     expect(AdderGrid).not.toHaveBeenCalled();
+    expect(DiffGrid).not.toHaveBeenCalled(); // Also assert DiffGrid not called
     expect(MultiplicationGridCore).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: '10',
@@ -66,6 +89,7 @@ describe('MultiplicationGrid Wrapper', () => {
     render(<MultiplicationGrid {...commonProps} mode="decimal" />);
     expect(screen.getByText('MultiplicationGridCore Mock')).toBeInTheDocument();
     expect(AdderGrid).not.toHaveBeenCalled();
+    expect(DiffGrid).not.toHaveBeenCalled(); // Also assert DiffGrid not called
     expect(MultiplicationGridCore).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'decimal',
@@ -84,5 +108,6 @@ describe('MultiplicationGrid Wrapper', () => {
     expect(screen.getByText('Unsupported Grid Mode')).toBeInTheDocument();
     expect(MultiplicationGridCore).not.toHaveBeenCalled();
     expect(AdderGrid).not.toHaveBeenCalled();
+    expect(DiffGrid).not.toHaveBeenCalled(); // Also assert DiffGrid not called
   });
 });
