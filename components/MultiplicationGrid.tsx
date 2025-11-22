@@ -82,12 +82,18 @@ const CellComponent: React.FC<CellProps> = React.memo(({
             if (adderColor === 'red') textStyleClass = `${dynamicTextSize} text-red-400 font-bold`;
             else if (adderColor === 'green') textStyleClass = `${dynamicTextSize} text-green-400 font-bold`;
             else if (adderColor === 'blue') textStyleClass = `${dynamicTextSize} text-blue-400 font-bold`;
+            else if (adderColor === 'darkgrey') textStyleClass = `${dynamicTextSize} text-gray-700 font-bold`; // Added this
             else textStyleClass = `${dynamicTextSize} text-cyan-400 font-bold`;
         } else {
             textStyleClass = `${dynamicTextSize} text-cyan-400 font-bold`;
         }
 
         effectiveDisplayContent = actualValue;
+
+        if (isLeftHeader && mode === 'adder') { // Added mode check here
+            textStyleClass += " text-transparent";
+            ariaLabel = 'Hidden left header cell'; // Update aria-label for accessibility
+        }
 
         if (isSelected && mode !== 'adder') {
             // Keep default blue highlight for non-adder modes
@@ -494,6 +500,7 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
                 mode={mode}
                 borderClasses="bg-black/10"
                 baseSizeClasses="w-full h-full"
+                className={mode === 'adder' ? 'text-transparent' : ''} // Added conditional class
                 style={{ width: HEADER_DIM, height: HEADER_DIM }}
                 isDimmed={mode === 'adder' ? false : isSelectionActive}
             />
