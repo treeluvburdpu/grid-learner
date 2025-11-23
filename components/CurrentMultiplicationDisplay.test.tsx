@@ -182,61 +182,83 @@ describe('CurrentMultiplicationDisplay', () => {
     expect(screen.getByText('= 0.00', { exact: false })).toBeInTheDocument();
   });
 
-  // Test cases for Diff Mode
-  it('displays correct integer difference for diff mode', () => {
+  // Test cases for Diff Mode (Green - Red)
+  it('displays correct difference for diff mode with positive result', () => {
+    const diffValues = { green: 8, red: 3 };
     render(
       <CurrentMultiplicationDisplay
-        selectedLeft={7}
-        selectedTop={3}
-        showZeroResult={false}
-        gridMode="diff"
-        adderValues={undefined}
-      />
-    );
-    expect(screen.getByText('7 - 3', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('= 4', { exact: false })).toBeInTheDocument();
-  });
-
-  it('displays correct decimal difference for diff mode', () => {
-    render(
-      <CurrentMultiplicationDisplay
-        selectedLeft={7} // Represents 0.7
-        selectedTop={3}  // Represents 0.3
-        showZeroResult={false}
-        gridMode="diff"
-        adderValues={undefined}
-      />
-    );
-    // |0.7 - 0.3| = 0.4
-    expect(screen.getByText('0.7 - 0.3', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('= 0.40', { exact: false })).toBeInTheDocument();
-  });
-
-  it('displays 0.0 when only selectedLeft is present in decimal diff mode', () => {
-    render(
-      <CurrentMultiplicationDisplay
-        selectedLeft={5}
+        selectedLeft={null}
         selectedTop={null}
         showZeroResult={false}
         gridMode="diff"
-        adderValues={undefined}
+        diffValues={diffValues}
       />
     );
-    expect(screen.getByText('0.5 - 0.0', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('= 0.50', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('8', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('-', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('3', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= 5', { exact: false })).toBeInTheDocument();
   });
 
-  it('displays "0.0 - 0.0 = 0.00" when showZeroResult is true in decimal diff mode', () => {
+  it('displays correct difference for diff mode with negative result', () => {
+    const diffValues = { green: 3, red: 8 };
+    render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={null}
+        selectedTop={null}
+        showZeroResult={false}
+        gridMode="diff"
+        diffValues={diffValues}
+      />
+    );
+    expect(screen.getByText('3', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('-', { selector: '.text-gray-400', exact: false })).toBeInTheDocument();
+    expect(screen.getByText('8', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= -5', { selector: '.text-gray-300', exact: false })).toBeInTheDocument();
+  });
+
+  it('displays correct difference for diff mode with some null values', () => {
+    const diffValues = { green: 5, red: null };
+    render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={null}
+        selectedTop={null}
+        showZeroResult={false}
+        gridMode="diff"
+        diffValues={diffValues}
+      />
+    );
+    expect(screen.getByText('5', { selector: '.text-green-400', exact: false })).toBeInTheDocument();
+    expect(screen.getByText('-', { selector: '.text-gray-400', exact: false })).toBeInTheDocument();
+    expect(screen.getByText('0', { selector: '.text-red-400', exact: false })).toBeInTheDocument(); // Red should default to 0
+    expect(screen.getByText('= 5', { selector: '.text-gray-300', exact: false })).toBeInTheDocument();
+  }); // Added missing brace here
+
+  it('returns null if diff is 0 and showZeroResult is false', () => {
+    const diffValues = { green: null, red: null };
+    const { container } = render(
+      <CurrentMultiplicationDisplay
+        selectedLeft={null}
+        selectedTop={null}
+        showZeroResult={false}
+        gridMode="diff"
+        diffValues={diffValues}
+      />
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('displays 0 diff if diff is 0 and showZeroResult is true', () => {
+    const diffValues = { green: null, red: null };
     render(
       <CurrentMultiplicationDisplay
         selectedLeft={null}
         selectedTop={null}
         showZeroResult={true}
         gridMode="diff"
-        adderValues={undefined}
+        diffValues={diffValues}
       />
     );
-    expect(screen.getByText('0.0 - 0.0', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('= 0.00', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('= 0', { exact: false })).toBeInTheDocument();
   });
 });

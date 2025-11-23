@@ -1,3 +1,4 @@
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MultiplicationGrid } from './MultiplicationGrid';
 import { MultiplicationGridCore } from './grids/MultiplicationGridCore';
@@ -14,7 +15,8 @@ vi.mock('./grids/AdderGrid', () => ({
   AdderGrid: vi.fn(() => <div>AdderGrid Mock</div>),
 }));
 
-vi.mock('./grids/DiffGrid', () => ({ // Mock DiffGrid
+vi.mock('./grids/DiffGrid', () => ({
+  // Mock DiffGrid
   DiffGrid: vi.fn(() => <div>DiffGrid Mock</div>),
 }));
 
@@ -49,7 +51,8 @@ describe('MultiplicationGrid Wrapper', () => {
     );
   });
 
-  it('renders DiffGrid when mode is "diff"', () => { // New test case for DiffGrid
+  it('renders DiffGrid when mode is "diff"', () => {
+    // New test case for DiffGrid
     render(<MultiplicationGrid {...commonProps} mode="diff" />);
     expect(screen.getByText('DiffGrid Mock')).toBeInTheDocument();
     expect(AdderGrid).not.toHaveBeenCalled();

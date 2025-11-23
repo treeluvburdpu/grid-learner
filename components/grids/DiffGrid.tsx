@@ -1,134 +1,32 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { GridMode } from '../../types';
+import React, { useState, useCallback } from 'react';
 import { SquareCellComponent } from '../CellComponent';
-import { HEADER_DIM, YELLOW_HIGHLIGHT_DURATION_MS } from '../../utils/constants';
+import { HEADER_DIM } from '../../utils/constants';
 
 interface DiffGridProps {
-  mode: '10' | 'decimal'; // This component only handles these modes for now
-  selectedTop: number | null;
-  selectedLeft: number | null;
-  onSelectTop: (num: number) => void;
-  onSelectLeft: (num: number) => void;
+  mode: 'diff'; // This component only handles diff mode
   onReset: () => void;
+  diffValues?: { green: number | null; red: number | null };
+  onDiffChange?: (color: 'green' | 'red', value: number) => void;
 }
 
-export const DiffGrid: React.FC<DiffGridProps> = ({
-  mode,
-  selectedTop,
-  selectedLeft,
-  onSelectTop,
-  onSelectLeft,
-  onReset,
-}) => {
+export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, onDiffChange }) => {
   const maxX = 10;
-  const maxY = 20;
+  const maxY = 10; // Max difference or input value is 10
 
-  const prevSelectedTopRef = useRef<number | null>(null);
-  const prevSelectedLeftRef = useRef<number | null>(null);
-  const [yellowHighlightedCells, setYellowHighlightedCells] = useState<Set<string>>(new Set());
-  const yellowHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hoveredCellKey, setHoveredCellKey] = useState<string | null>(null);
 
   const handleMouseEnter = useCallback((key: string) => setHoveredCellKey(key), []);
   const handleMouseLeaveGrid = useCallback(() => setHoveredCellKey(null), []);
 
-  const formatValue = useCallback(
-    (val: number, operand1: number, operand2: number) => {
-      let result;
-      if (mode === 'decimal') {
-        const decOperand1 = operand1 / 10; // Convert index to 0.x
-        const decOperand2 = operand2 / 10; // Convert index to 0.x
-        result = Math.abs(decOperand1 - decOperand2);
-        return parseFloat(result.toFixed(2));
-      }
-      result = Math.abs(operand1 - operand2);
-      return result;
-    },
-    [mode]
-  );
-
-  const formatHeader = useCallback(
-    (val: number) => {
-      if (mode === 'decimal') {
-        return (val / 10).toFixed(1);
-      }
-      return val;
-    },
-    [mode]
-  );
-
-  useEffect(() => {
-    if (yellowHighlightTimerRef.current) clearTimeout(yellowHighlightTimerRef.current);
-    const newYellowCells = new Set<string>();
-    let hasNewYellowCells = false;
-    if (selectedTop !== null && selectedLeft !== null) {
-      const prevTop = prevSelectedTopRef.current;
-      const prevLeft = prevSelectedLeftRef.current;
-
-      // The logic for highlighting is slightly different for diff as it's not a block
-      // We will highlight cells that match either selectedTop or selectedLeft
-      for (let r = 1; r <= maxY; r++) {
-        for (let c = 1; c <= maxX; c++) {
-          const cellKey = `cell-${r}-${c}`;
-
-          const isCurrentlyActive = (r === selectedLeft || c === selectedTop);
-
-          let wasPreviouslyActive = false;
-          if (prevTop !== null && prevLeft !== null) {
-              wasPreviouslyActive = (r === prevLeft || c === prevTop);
-          }
-
-          if (isCurrentlyActive && !wasPreviouslyActive) {
-            newYellowCells.add(cellKey);
-            hasNewYellowCells = true;
-          }
-        }
-      }
-    }
-    if (hasNewYellowCells) {
-      setYellowHighlightedCells(newYellowCells);
-      yellowHighlightTimerRef.current = setTimeout(
-        () => setYellowHighlightedCells(new Set()),
-        YELLOW_HIGHLIGHT_DURATION_MS
-      );
-    } else if (selectedTop === null && selectedLeft === null) {
-      setYellowHighlightedCells(new Set());
-    }
-    prevSelectedTopRef.current = selectedTop;
-    prevSelectedLeftRef.current = selectedLeft;
-    return () => {
-      if (yellowHighlightTimerRef.current) clearTimeout(yellowHighlightTimerRef.current);
-    };
-  }, [selectedTop, selectedLeft, mode, maxX, maxY]);
-
-  // Effect to reset yellow highlight and hovered state when mode changes
-  useEffect(() => {
-    prevSelectedTopRef.current = null;
-    prevSelectedLeftRef.current = null;
-    setYellowHighlightedCells(new Set());
-    if (yellowHighlightTimerRef.current) clearTimeout(yellowHighlightTimerRef.current);
-    setHoveredCellKey(null);
-  }, [mode]);
-
-  const getCellBorderClasses = useCallback((rowNum: number, colNum: number, isYellow: boolean): string => {
-    if (rowNum === 0 || colNum === 0) return '';
-    if (isYellow) return 'border-t border-l border-yellow-500/80';
-
-    const baseBorderColor = 'border-white';
-    const topBorderClass = `border-t ${baseBorderColor}/30`;
-    const leftBorderClass = `border-l ${baseBorderColor}/30`;
-    return `${topBorderClass} ${leftBorderClass}`.trim();
-  }, []);
-
-  const isSelectionActive = selectedTop !== null || selectedLeft !== null;
-  const cornerCellKey = 'header-corner-0';
+  const isOdd = (n: number) => n % 2 !== 0;
+  const GREEN_COL = 2; // Minuend
+  const RED_COL = 4; // Subtrahend
+  const DIFF_COL = 10; // Result
 
   const rowElements = [];
   for (let r = maxY; r >= 1; r--) {
     const headerKey = `header-left-${r}`;
-    const headerVal = formatHeader(r);
-
-    const isHeaderDimmed = isSelectionActive;
+    const headerVal = r; // Left header is just row number for diff mode
 
     rowElements.push(
       <SquareCellComponent
@@ -136,72 +34,90 @@ export const DiffGrid: React.FC<DiffGridProps> = ({
         actualValue={headerVal}
         isHovered={hoveredCellKey === headerKey}
         onMouseEnter={() => handleMouseEnter(headerKey)}
-        onClick={() => onSelectLeft(r)}
         isHeader
         isLeftHeader
-        isSelected={selectedLeft === r}
         mode={mode}
         borderClasses=""
         baseSizeClasses="w-full h-full"
-        isDimmed={isHeaderDimmed}
+        className="text-transparent"
       />
     );
 
     for (let c = 1; c <= maxX; c++) {
       const cellKey = `cell-${r}-${c}`;
 
-      const isGreenHighlighted = selectedTop !== null && selectedLeft !== null && (r === selectedLeft || c === selectedTop);
-      const isYellow = yellowHighlightedCells.has(cellKey);
-      const isMaxValueCell = (selectedTop !== null && c === selectedTop) && (selectedLeft !== null && r === selectedLeft);
-      const isDimmed = isSelectionActive && !isGreenHighlighted && !isMaxValueCell;
+      let cellContent: React.ReactNode = '';
+      let cellDiffColor: 'green' | 'red' | 'darkgrey' | undefined = undefined; // Using green/red for diff visualization
+      let onClickHandler: (() => void) | undefined = undefined;
 
+      const gVal = diffValues?.green || 0;
+      const rVal = diffValues?.red || 0;
+      const diffResult = gVal - rVal; // Minuend - Subtrahend
 
-      let cellValue: string | number = '';
-      if (isGreenHighlighted || isYellow) {
-        cellValue = formatValue(0, r, c); // 0 is dummy value
+      if (c === GREEN_COL) {
+        if (r <= 10) {
+          if (r <= gVal) {
+            cellContent = r;
+            cellDiffColor = 'green';
+          }
+          onClickHandler = () => onDiffChange && onDiffChange('green', r);
+        }
+      } else if (c === RED_COL) {
+        if (r <= 10) {
+          if (r <= rVal) {
+            cellContent = r;
+            cellDiffColor = 'red';
+          }
+          onClickHandler = () => onDiffChange && onDiffChange('red', r);
+        }
+      } else if (c === DIFF_COL) {
+        if (diffResult >= 0) {
+          // Positive difference: fill with green blocks
+          if (r <= diffResult) {
+            cellContent = r;
+            cellDiffColor = 'green';
+          }
+        } else {
+          // Negative difference: fill with red blocks (representing "debt")
+          if (r <= Math.abs(diffResult)) {
+            cellContent = r;
+            cellDiffColor = 'red';
+          }
+        }
       }
 
-      const isFirstSelRow = selectedLeft !== null && r === selectedLeft;
-      const isLastSelRow = selectedLeft !== null && r === selectedLeft; // For diff, only highlight the exact row/col
-      const isFirstSelCol = selectedTop !== null && c === selectedTop;
-      const isLastSelCol = selectedTop !== null && c === selectedTop; // For diff, only highlight the exact row/col
+      if (isOdd(c) || c === 6 || c === 8) {
+        // Odd columns and spacer col 6, 8 are blank
+        rowElements.push(
+          <SquareCellComponent
+            key={cellKey}
+            actualValue=""
+            isHovered={false}
+            borderClasses=""
+            mode={mode}
+            baseSizeClasses="aspect-square"
+            className="adder-cell-no-border" // Reusing adder's no-border class
+          />
+        );
+      } else {
+        const isInputSlot = (c === GREEN_COL || c === RED_COL) && r <= 10;
+        const border = isInputSlot || c === DIFF_COL ? 'adder-cell-border' : 'border-none'; // Reusing adder's border class
 
-
-      let borderClasses = getCellBorderClasses(r, c, isYellow);
-      if (isFirstSelRow && isGreenHighlighted) {
-        borderClasses = `${borderClasses} border-t border-green-400`.trim();
+        rowElements.push(
+          <SquareCellComponent
+            key={cellKey}
+            actualValue={cellContent as string}
+            isHovered={isInputSlot && hoveredCellKey === cellKey}
+            onMouseEnter={() => isInputSlot && handleMouseEnter(cellKey)}
+            onClick={onClickHandler}
+            adderColor={cellDiffColor} // Reusing adderColor prop for diff visualization
+            borderClasses={border}
+            mode={mode}
+            baseSizeClasses="aspect-square"
+            className={`row-${r} col-${c} ${isInputSlot ? 'hover:bg-gray-800' : ''}`}
+          />
+        );
       }
-      if (isFirstSelCol && isGreenHighlighted) {
-          borderClasses = `${borderClasses} border-l border-green-400`.trim();
-      }
-      if (isLastSelRow && isGreenHighlighted) {
-        borderClasses = `${borderClasses} border-b border-green-400`.trim();
-      }
-      if (isLastSelCol && isGreenHighlighted) {
-        borderClasses = `${borderClasses} border-r border-green-400`.trim();
-      }
-
-
-      rowElements.push(
-        <SquareCellComponent
-          key={cellKey}
-          actualValue={cellValue}
-          isHovered={hoveredCellKey === cellKey}
-          onMouseEnter={() => handleMouseEnter(cellKey)}
-          isHighlightedGreen={isGreenHighlighted}
-          isChangeHighlightedYellow={isYellow}
-          borderClasses={borderClasses}
-          mode={mode}
-          baseSizeClasses="aspect-square"
-          className={`row-${r} col-${c}`}
-          isFirstSelectedRow={isFirstSelRow}
-          isLastSelRow={isLastSelRow}
-          isFirstSelectedCol={isFirstSelCol}
-          isLastSelCol={isLastSelCol}
-          isMaxValueCell={isMaxValueCell}
-          isDimmed={isDimmed}
-        />
-      );
     }
   }
 
@@ -221,37 +137,53 @@ export const DiffGrid: React.FC<DiffGridProps> = ({
 
       <SquareCellComponent
         actualValue="0"
-        isHovered={hoveredCellKey === cornerCellKey}
-        onMouseEnter={() => handleMouseEnter(cornerCellKey)}
+        isHovered={hoveredCellKey === 'header-corner-0'}
+        onMouseEnter={() => handleMouseEnter('header-corner-0')}
         onClick={onReset}
         isHeader={true}
         mode={mode}
         borderClasses="bg-black/10"
         baseSizeClasses="w-full h-full"
+        className="text-transparent"
         style={{ width: HEADER_DIM, height: HEADER_DIM }}
-        isDimmed={isSelectionActive}
       />
 
       {/* Bottom Headers */}
       {Array.from({ length: maxX }, (_, i) => i + 1).map((num) => {
         const cellKey = `header-bottom-${num}`;
-        const isDimmed = isSelectionActive;
-        const borderClasses = 'border-t border-white/30';
-        const headerVal = formatHeader(num);
+        let content: string | number = '';
+        let color: 'green' | 'red' | 'darkgrey' | undefined = undefined;
+
+        if (num === GREEN_COL) {
+          content = diffValues?.green || 0;
+          color = 'green';
+        } else if (num === RED_COL) {
+          content = diffValues?.red || 0;
+          color = 'red';
+        } else if (num === 3) {
+          content = '-';
+          color = 'darkgrey';
+        } else if (num === 9) {
+          content = '=';
+          color = 'darkgrey';
+        } else if (num === DIFF_COL) {
+          const gVal = diffValues?.green || 0;
+          const rVal = diffValues?.red || 0;
+          content = gVal - rVal;
+          color = content >= 0 ? 'green' : 'red'; // Color the total based on sign
+        }
+
         return (
           <SquareCellComponent
             key={cellKey}
-            actualValue={headerVal}
-            isHovered={hoveredCellKey === cellKey}
-            onMouseEnter={() => handleMouseEnter(cellKey)}
-            onClick={() => onSelectTop(num)}
+            actualValue={content}
+            isHovered={false}
             isHeader
             isBottomHeader
-            isSelected={selectedTop === num}
             mode={mode}
-            borderClasses={borderClasses}
+            adderColor={color}
+            borderClasses="border-t border-white/30"
             baseSizeClasses="w-full h-full"
-            isDimmed={isDimmed}
           />
         );
       })}

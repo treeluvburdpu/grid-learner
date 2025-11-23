@@ -37,8 +37,8 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
   }, [isSumColumnShifted]);
 
   const isOdd = (n: number) => n % 2 !== 0;
-  const RED_COL = 2;
-  const GREEN_COL = 4;
+  const GREEN_COL = 2; // Green first
+  const RED_COL = 4; // Red second
   const BLUE_COL = 6;
   const SUM_COL = 10;
 
@@ -74,21 +74,22 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
       const gVal = adderValues?.green || 0;
       const bVal = adderValues?.blue || 0;
 
-      if (c === RED_COL) {
-        if (r <= 10) {
-          if (r <= rVal) {
-            cellContent = r;
-            cellAdderColor = 'red';
-          }
-          onClickHandler = () => onAdderChange && onAdderChange('red', r);
-        }
-      } else if (c === GREEN_COL) {
+      // Adjusted order: Green, then Red, then Blue
+      if (c === GREEN_COL) {
         if (r <= 10) {
           if (r <= gVal) {
             cellContent = r;
             cellAdderColor = 'green';
           }
           onClickHandler = () => onAdderChange && onAdderChange('green', r);
+        }
+      } else if (c === RED_COL) {
+        if (r <= 10) {
+          if (r <= rVal) {
+            cellContent = r;
+            cellAdderColor = 'red';
+          }
+          onClickHandler = () => onAdderChange && onAdderChange('red', r);
         }
       } else if (c === BLUE_COL) {
         if (r <= 10) {
@@ -102,10 +103,12 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
         const total = rVal + gVal + bVal;
         if (r <= total) {
           cellContent = r;
-          if (r <= rVal) {
-            cellAdderColor = 'red';
-          } else if (r <= rVal + gVal) {
+          // Determine color based on stack order: Green, then Red, then Blue
+          if (r <= gVal) {
             cellAdderColor = 'green';
+          } else if (r <= gVal + rVal) {
+            // Adjusted order for stacking
+            cellAdderColor = 'red';
           } else {
             cellAdderColor = 'blue';
           }
@@ -134,10 +137,12 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
 
         const cellStyle: React.CSSProperties = {};
         if (isSumColumnShifted) {
-          if (c === GREEN_COL && r <= gVal) {
-            cellStyle.transform = `translate3d(0, calc(-1 * ${rVal} * 105%), 0)`;
+          if (c === RED_COL && r <= rVal) {
+            // Adjusted for Red column shift
+            cellStyle.transform = `translate3d(0, calc(-1 * ${gVal} * 105%), 0)`;
           } else if (c === BLUE_COL && r <= bVal) {
-            cellStyle.transform = `translate3d(0, calc(-1 * ${rVal + gVal} * 105%), 0)`;
+            // Adjusted for Blue column shift
+            cellStyle.transform = `translate3d(0, calc(-1 * ${gVal + rVal} * 105%), 0)`;
           }
         }
 
@@ -205,12 +210,13 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
           content = '=';
           color = 'darkgrey';
         }
-        if (num === RED_COL) {
-          content = adderValues?.red || 0;
-          color = 'red';
-        } else if (num === GREEN_COL) {
+        // Adjusted order: Green, then Red, then Blue for bottom headers
+        if (num === GREEN_COL) {
           content = adderValues?.green || 0;
           color = 'green';
+        } else if (num === RED_COL) {
+          content = adderValues?.red || 0;
+          color = 'red';
         } else if (num === BLUE_COL) {
           content = adderValues?.blue || 0;
           color = 'blue';
