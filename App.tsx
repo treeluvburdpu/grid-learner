@@ -18,6 +18,12 @@ const App: React.FC = () => {
     blue: null,
   });
 
+  // Diff Mode State
+  const [diffValues, setDiffValues] = useState<{ green: number | null; red: number | null }>({
+    green: null,
+    red: null,
+  });
+
   const [showZeroResult, setShowZeroResult] = useState(false);
 
   const handleGridModeChange = useCallback((mode: GridMode) => {
@@ -25,6 +31,7 @@ const App: React.FC = () => {
     setSelectedTop(null);
     setSelectedLeft(null);
     setAdderValues({ red: null, green: null, blue: null });
+    setDiffValues({ green: null, red: null }); // Add this line for diff mode
     setShowZeroResult(false);
   }, []);
 
@@ -51,9 +58,24 @@ const App: React.FC = () => {
     setShowZeroResult(false);
   }, []);
 
+  // Diff Handlers
+  const handleDiffChange = useCallback((color: 'green' | 'red', value: number) => {
+    setDiffValues((prev) => {
+      // Toggle off if clicking same number
+      if (prev[color] === value) {
+        return { ...prev, [color]: null };
+      }
+      return { ...prev, [color]: value };
+    });
+    setShowZeroResult(false);
+  }, []);
+
   const handleReset = useCallback(() => {
     if (gridMode === 'adder') {
       setAdderValues({ red: null, green: null, blue: null });
+    } else if (gridMode === 'diff') {
+      // Add this condition for diff mode
+      setDiffValues({ green: null, red: null });
     } else {
       setSelectedTop(null);
       setSelectedLeft(null);
@@ -68,7 +90,9 @@ const App: React.FC = () => {
         <header className="text-center py-2 text-xs text-gray-500 sticky top-0 bg-black z-20 border-b border-gray-700/50 shrink-0">
           {gridMode === 'adder'
             ? 'Select height in colored columns to add.'
-            : 'Select numbers on edge. Grid is scrollable.'}
+            : gridMode === 'diff'
+              ? 'Select green column for minuend, red for subtrahend.'
+              : 'Select numbers on edge. Grid is scrollable.'}
         </header>
 
         {/* Main Content: Grid - Flex Col Reverse for bottom-anchored scrolling */}
@@ -83,6 +107,8 @@ const App: React.FC = () => {
               onReset={handleReset}
               adderValues={adderValues}
               onAdderChange={handleAdderChange}
+              diffValues={diffValues} // Pass diffValues
+              onDiffChange={handleDiffChange} // Pass onDiffChange
             />
           </div>
         </main>

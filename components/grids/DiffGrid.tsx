@@ -56,17 +56,17 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
 
       if (c === GREEN_COL) {
         if (r <= 10) {
+          cellContent = r; // Always show the number
           if (r <= gVal) {
-            cellContent = r;
-            cellDiffColor = 'green';
+            cellDiffColor = 'green'; // Only color if selected
           }
           onClickHandler = () => onDiffChange && onDiffChange('green', r);
         }
       } else if (c === RED_COL) {
         if (r <= 10) {
+          cellContent = r; // Always show the number
           if (r <= rVal) {
-            cellContent = r;
-            cellDiffColor = 'red';
+            cellDiffColor = 'red'; // Only color if selected
           }
           onClickHandler = () => onDiffChange && onDiffChange('red', r);
         }

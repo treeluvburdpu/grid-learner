@@ -101,7 +101,7 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
       // Data cell
       textStyleClass = `${dynamicTextSize} font-bold leading-none`;
 
-      if (mode === 'adder' && adderColor) {
+      if (adderColor) {
         effectiveDisplayContent = actualValue;
         if (adderColor === 'red') {
           bgClass = 'bg-red-900/40 border-red-500/30';
@@ -115,11 +115,20 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
         } else if (adderColor === 'darkgrey') {
           bgClass = 'bg-gray-950/40 border-gray-600/30';
           textStyleClass += ' text-gray-700';
+        } else if (adderColor === 'mixed') {
+          // Assuming 'mixed' could be a future state
+          bgClass = 'bg-purple-900/40 border-purple-500/30';
+          textStyleClass += ' text-purple-400';
         }
         borderClasses = `border ${borderClasses
           .split(' ')
           .filter((c) => !c.startsWith('border-'))
           .join(' ')}`;
+      } else if (mode === 'diff') {
+        // Added for diff mode to show numbers even when not selected
+        effectiveDisplayContent = actualValue;
+        textStyleClass += ` text-gray-700`; // Prepopulate with dark grey numbers
+        ariaLabel = 'Grid cell';
       } else if (isChangeHighlightedYellow) {
         effectiveDisplayContent = actualValue;
         textStyleClass += ` text-yellow-500`;

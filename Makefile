@@ -18,7 +18,7 @@ build: ## Build the application for production
 preview: ## Preview the production build locally
 	$(NPM_BIN)/vite preview
 
-test: ## Run Vitest tests
+test: lint ## Run Vitest tests
 	$(NPM_BIN)/vitest run
 
 lint: ## Run ESLint to check for code quality issues. Use FIX=--fix to auto-fix issues.

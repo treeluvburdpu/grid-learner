@@ -13,6 +13,8 @@ interface MultiplicationGridProps {
   onReset: () => void;
   adderValues?: { red: number | null; green: number | null; blue: number | null };
   onAdderChange?: (color: 'red' | 'green' | 'blue', value: number) => void;
+  diffValues?: { green: number | null; red: number | null }; // New prop for DiffGrid
+  onDiffChange?: (color: 'green' | 'red', value: number) => void; // New prop for DiffGrid
 }
 
 export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
@@ -24,6 +26,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   onReset,
   adderValues,
   onAdderChange,
+  diffValues, // Destructure diffValues
+  onDiffChange, // Destructure onDiffChange
 }) => {
   switch (mode) {
     case 'adder':
@@ -32,11 +36,9 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
       return (
         <DiffGrid
           mode={mode}
-          selectedTop={selectedTop}
-          selectedLeft={selectedLeft}
-          onSelectTop={onSelectTop}
-          onSelectLeft={onSelectLeft}
           onReset={onReset}
+          diffValues={diffValues} // Pass diffValues
+          onDiffChange={onDiffChange} // Pass onDiffChange
         />
       );
     case '10':

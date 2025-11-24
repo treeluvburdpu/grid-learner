@@ -29,6 +29,8 @@ describe('MultiplicationGrid Wrapper', () => {
     onReset: vi.fn(),
     adderValues: { red: 1, green: 2, blue: 3 },
     onAdderChange: vi.fn(),
+    diffValues: { green: 1, red: 1 }, // New prop for DiffGrid testing
+    onDiffChange: vi.fn(), // New prop for DiffGrid testing
   };
 
   beforeEach(() => {
@@ -60,11 +62,9 @@ describe('MultiplicationGrid Wrapper', () => {
     expect(DiffGrid).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'diff',
-        selectedTop: commonProps.selectedTop,
-        selectedLeft: commonProps.selectedLeft,
-        onSelectTop: commonProps.onSelectTop,
-        onSelectLeft: commonProps.onSelectLeft,
         onReset: commonProps.onReset,
+        diffValues: commonProps.diffValues,
+        onDiffChange: commonProps.onDiffChange,
       }),
       {}
     );

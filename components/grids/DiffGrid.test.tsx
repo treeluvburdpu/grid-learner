@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { MockedFunction } from 'vitest'; // Import MockedFunction as a type only
 import { DiffGrid } from './DiffGrid';
-
-// We need to import the mocked version of SquareCellComponent here
 import { SquareCellComponent } from '../CellComponent';
 
 // Use vi.mock to mock the module
@@ -60,7 +59,7 @@ describe('DiffGrid', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (SquareCellComponent as ReturnType<typeof vi.fn>).mockClear();
+    (SquareCellComponent as MockedFunction<typeof SquareCellComponent>).mockClear();
   });
 
   it('renders the grid structure with SquareCellComponents', () => {
@@ -116,11 +115,21 @@ describe('DiffGrid', () => {
       expect(greenBlock).toBeInTheDocument();
       expect(greenBlock).toHaveTextContent(String(r));
     }
-    // Check cell above max green value is empty
-    const emptyCell = screen
-      .getAllByTestId('square-cell')
-      .find((cell) => cell.className.includes(`row-6`) && cell.className.includes('col-2'));
-    expect(emptyCell).toHaveTextContent('Empty');
+    // Check cell above max green value displays its number but no adderColor
+    for (let r = 6; r <= 10; r++) {
+      const cellAboveGreen = screen
+        .getAllByTestId('square-cell')
+        .find(
+          (cell) =>
+            cell.className.includes(`row-${r}`) &&
+            cell.className.includes('col-2') &&
+            cell.dataset.isLeftHeader === undefined &&
+            cell.dataset.isBottomHeader === undefined
+        );
+      expect(cellAboveGreen).toBeInTheDocument();
+      expect(cellAboveGreen).toHaveTextContent(String(r));
+      expect(cellAboveGreen).not.toHaveAttribute('data-adder-color', 'green');
+    }
   });
 
   it('displays red blocks in red column up to diffValues.red', () => {
@@ -136,11 +145,21 @@ describe('DiffGrid', () => {
       expect(redBlock).toBeInTheDocument();
       expect(redBlock).toHaveTextContent(String(r));
     }
-    // Check cell above max red value is empty
-    const emptyCell = screen
-      .getAllByTestId('square-cell')
-      .find((cell) => cell.className.includes(`row-4`) && cell.className.includes('col-4'));
-    expect(emptyCell).toHaveTextContent('Empty');
+    // Check cell above max red value displays its number but no adderColor
+    for (let r = 4; r <= 10; r++) {
+      const cellAboveRed = screen
+        .getAllByTestId('square-cell')
+        .find(
+          (cell) =>
+            cell.className.includes(`row-${r}`) &&
+            cell.className.includes('col-4') &&
+            cell.dataset.isLeftHeader === undefined &&
+            cell.dataset.isBottomHeader === undefined
+        );
+      expect(cellAboveRed).toBeInTheDocument();
+      expect(cellAboveRed).toHaveTextContent(String(r));
+      expect(cellAboveRed).not.toHaveAttribute('data-adder-color', 'red');
+    }
   });
 
   it('displays the correct difference in the diff column (positive)', () => {
