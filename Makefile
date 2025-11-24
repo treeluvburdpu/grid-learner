@@ -21,8 +21,8 @@ preview: ## Preview the production build locally
 test: ## Run Vitest tests
 	$(NPM_BIN)/vitest run
 
-lint: ## Run ESLint to check for code quality issues
-	$(NPM_BIN)/eslint . --ext .ts,.tsx,.js,.jsx --fix
+lint: ## Run ESLint to check for code quality issues. Use FIX=--fix to auto-fix issues.
+	$(NPM_BIN)/eslint . --ext .ts,.tsx,.js,.jsx $(FIX)
 
 format: ## Run Prettier to format the codebase
 	$(NPM_BIN)/prettier --write .

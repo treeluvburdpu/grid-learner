@@ -9,66 +9,40 @@ import { SquareCellComponent } from '../CellComponent';
 // Use vi.mock to mock the module
 vi.mock('../CellComponent', () => {
   const Mock = vi.fn((props) => {
-    // Destructure all known custom props and filter out non-standard DOM props
-    const {
-      actualValue,
-      isHeader,
-      onClick,
-      isLeftHeader,
-      isBottomHeader,
-      adderColor,
-      className,
-      // Filter out custom props that are not standard HTML attributes
-      isHovered,
-      borderClasses,
-      baseSizeClasses,
-      mode,
-      isSelected,
-      isHighlightedGreen,
-      isChangeHighlightedYellow,
-      isMaxValueCell,
-      isDimmed,
-      style,
-      onMouseEnter,
-      onMouseLeave,
-      onCellMouseDown,
-      onCellMouseUp,
-      onTouchStart,
-      onTouchEnd,
-      ...rest // Collect any other unknown props
-    } = props;
+    // Destructure only the props actually used in the mock's logic or data-attributes
+    const { actualValue } = props;
 
     const contentToDisplay = actualValue !== null && actualValue !== '' ? String(actualValue) : 'Empty';
 
     // Construct valid HTML attributes and data attributes
     const htmlProps: { [key: string]: any } = {
       'data-testid': 'square-cell',
-      'data-actual-value': actualValue,
-      'data-is-header': isHeader,
-      'data-is-left-header': isLeftHeader,
-      'data-is-bottom-header': isBottomHeader,
-      'data-adder-color': adderColor,
-      className: className,
-      onClick: onClick,
-      onMouseEnter: onMouseEnter,
-      onMouseLeave: onMouseLeave,
-      onMouseDown: onCellMouseDown,
-      onMouseUp: onCellMouseUp,
-      onTouchStart: onTouchStart,
-      onTouchEnd: onTouchEnd,
-      style: style,
+      'data-actual-value': props.actualValue, // Use props.actualValue directly
+      'data-is-header': props.isHeader, // Use props.isHeader directly
+      'data-is-left-header': props.isLeftHeader, // Use props.isLeftHeader directly
+      'data-is-bottom-header': props.isBottomHeader, // Use props.isBottomHeader directly
+      'data-adder-color': props.adderColor, // Use props.adderColor directly
+      className: props.className, // Use props.className directly
+      onClick: props.onClick, // Use props.onClick directly
+      onMouseEnter: props.onMouseEnter,
+      onMouseLeave: props.onMouseLeave,
+      onMouseDown: props.onCellMouseDown,
+      onMouseUp: props.onCellMouseUp,
+      onTouchStart: props.onTouchStart,
+      onTouchEnd: props.onTouchEnd,
+      style: props.style,
       // Pass custom props as data-attributes if needed for testing, or just filter them out if not used
-      'data-is-selected': isSelected,
-      'data-is-highlighted-green': isHighlightedGreen,
-      'data-is-change-highlighted-yellow': isChangeHighlightedYellow,
-      'data-is-max-value-cell': isMaxValueCell,
-      'data-is-dimmed': isDimmed,
+      'data-is-selected': props.isSelected,
+      'data-is-highlighted-green': props.isHighlightedGreen,
+      'data-is-change-highlighted-yellow': props.isChangeHighlightedYellow,
+      'data-is-max-value-cell': props.isMaxValueCell,
+      'data-is-dimmed': props.isDimmed,
     };
 
     return (
       <div
         {...htmlProps}
-        {...rest} // Include any remaining standard HTML attributes
+        // {...rest} // No longer needed as we are explicitly picking props
       >
         {contentToDisplay}
       </div>
@@ -76,7 +50,6 @@ vi.mock('../CellComponent', () => {
   });
   return { SquareCellComponent: Mock }; // Export the mock component
 });
-
 
 describe('DiffGrid', () => {
   const commonProps = {
@@ -132,19 +105,21 @@ describe('DiffGrid', () => {
     const diffValues = { green: 5, red: 0 };
     render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValues} />);
     for (let r = 1; r <= 5; r++) {
-      const greenBlock = screen.getAllByTestId('square-cell').find(
-        (cell) =>
-          cell.className.includes(`row-${r}`) &&
-          cell.className.includes('col-2') &&
-          cell.dataset.adderColor === 'green'
-      );
+      const greenBlock = screen
+        .getAllByTestId('square-cell')
+        .find(
+          (cell) =>
+            cell.className.includes(`row-${r}`) &&
+            cell.className.includes('col-2') &&
+            cell.dataset.adderColor === 'green'
+        );
       expect(greenBlock).toBeInTheDocument();
       expect(greenBlock).toHaveTextContent(String(r));
     }
     // Check cell above max green value is empty
-    const emptyCell = screen.getAllByTestId('square-cell').find(
-      (cell) => cell.className.includes(`row-6`) && cell.className.includes('col-2')
-    );
+    const emptyCell = screen
+      .getAllByTestId('square-cell')
+      .find((cell) => cell.className.includes(`row-6`) && cell.className.includes('col-2'));
     expect(emptyCell).toHaveTextContent('Empty');
   });
 
@@ -152,19 +127,19 @@ describe('DiffGrid', () => {
     const diffValues = { green: 0, red: 3 };
     render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValues} />);
     for (let r = 1; r <= 3; r++) {
-      const redBlock = screen.getAllByTestId('square-cell').find(
-        (cell) =>
-          cell.className.includes(`row-${r}`) &&
-          cell.className.includes('col-4') &&
-          cell.dataset.adderColor === 'red'
-      );
+      const redBlock = screen
+        .getAllByTestId('square-cell')
+        .find(
+          (cell) =>
+            cell.className.includes(`row-${r}`) && cell.className.includes('col-4') && cell.dataset.adderColor === 'red'
+        );
       expect(redBlock).toBeInTheDocument();
       expect(redBlock).toHaveTextContent(String(r));
     }
     // Check cell above max red value is empty
-    const emptyCell = screen.getAllByTestId('square-cell').find(
-      (cell) => cell.className.includes(`row-4`) && cell.className.includes('col-4')
-    );
+    const emptyCell = screen
+      .getAllByTestId('square-cell')
+      .find((cell) => cell.className.includes(`row-4`) && cell.className.includes('col-4'));
     expect(emptyCell).toHaveTextContent('Empty');
   });
 
@@ -173,19 +148,21 @@ describe('DiffGrid', () => {
     render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValues} />);
     const diff = diffValues.green - diffValues.red; // 4
     for (let r = 1; r <= diff; r++) {
-      const diffBlock = screen.getAllByTestId('square-cell').find(
-        (cell) =>
-          cell.className.includes(`row-${r}`) &&
-          cell.className.includes('col-10') &&
-          cell.dataset.adderColor === 'green'
-      );
+      const diffBlock = screen
+        .getAllByTestId('square-cell')
+        .find(
+          (cell) =>
+            cell.className.includes(`row-${r}`) &&
+            cell.className.includes('col-10') &&
+            cell.dataset.adderColor === 'green'
+        );
       expect(diffBlock).toBeInTheDocument();
       expect(diffBlock).toHaveTextContent(String(r));
     }
     // Check cell above diff is empty
-    const emptyCell = screen.getAllByTestId('square-cell').find(
-      (cell) => cell.className.includes(`row-${diff + 1}`) && cell.className.includes('col-10')
-    );
+    const emptyCell = screen
+      .getAllByTestId('square-cell')
+      .find((cell) => cell.className.includes(`row-${diff + 1}`) && cell.className.includes('col-10'));
     expect(emptyCell).toHaveTextContent('Empty');
   });
 
@@ -194,19 +171,21 @@ describe('DiffGrid', () => {
     render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValues} />);
     const diff = diffValues.green - diffValues.red; // -4
     for (let r = 1; r <= Math.abs(diff); r++) {
-      const diffBlock = screen.getAllByTestId('square-cell').find(
-        (cell) =>
-          cell.className.includes(`row-${r}`) &&
-          cell.className.includes('col-10') &&
-          cell.dataset.adderColor === 'red'
-      );
+      const diffBlock = screen
+        .getAllByTestId('square-cell')
+        .find(
+          (cell) =>
+            cell.className.includes(`row-${r}`) &&
+            cell.className.includes('col-10') &&
+            cell.dataset.adderColor === 'red'
+        );
       expect(diffBlock).toBeInTheDocument();
       expect(diffBlock).toHaveTextContent(String(r));
     }
     // Check cell above abs(diff) is empty
-    const emptyCell = screen.getAllByTestId('square-cell').find(
-      (cell) => cell.className.includes(`row-${Math.abs(diff) + 1}`) && cell.className.includes('col-10')
-    );
+    const emptyCell = screen
+      .getAllByTestId('square-cell')
+      .find((cell) => cell.className.includes(`row-${Math.abs(diff) + 1}`) && cell.className.includes('col-10'));
     expect(emptyCell).toHaveTextContent('Empty');
   });
 
@@ -216,23 +195,17 @@ describe('DiffGrid', () => {
     expect(
       screen
         .getAllByTestId('square-cell')
-        .find(
-          (cell) => cell.dataset.isBottomHeader === 'true' && cell.dataset.actualValue === '8'
-        )
+        .find((cell) => cell.dataset.isBottomHeader === 'true' && cell.dataset.actualValue === '8')
     ).toHaveTextContent('8'); // Green
     expect(
       screen
         .getAllByTestId('square-cell')
-        .find(
-          (cell) => cell.dataset.isBottomHeader === 'true' && cell.dataset.actualValue === '3'
-        )
+        .find((cell) => cell.dataset.isBottomHeader === 'true' && cell.dataset.actualValue === '3')
     ).toHaveTextContent('3'); // Red
     expect(
       screen
         .getAllByTestId('square-cell')
-        .find(
-          (cell) => cell.dataset.isBottomHeader === 'true' && cell.dataset.actualValue === '5'
-        )
+        .find((cell) => cell.dataset.isBottomHeader === 'true' && cell.dataset.actualValue === '5')
     ).toHaveTextContent('5'); // Diff
   });
 
