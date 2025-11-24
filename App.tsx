@@ -5,7 +5,10 @@ import { CurrentMultiplicationDisplay } from './components/CurrentMultiplication
 import type { GridMode } from './types';
 
 const App: React.FC = () => {
-  const [gridMode, setGridMode] = useState<GridMode>('adder');
+  const [gridMode, setGridMode] = useState<GridMode>(() => {
+    const savedMode = localStorage.getItem('gridMode');
+    return savedMode ? (savedMode as GridMode) : 'adder';
+  });
 
   // Multiplication Mode State
   const [selectedTop, setSelectedTop] = useState<number | null>(null);
@@ -28,6 +31,7 @@ const App: React.FC = () => {
 
   const handleGridModeChange = useCallback((mode: GridMode) => {
     setGridMode(mode);
+    localStorage.setItem('gridMode', mode); // Save to localStorage
     setSelectedTop(null);
     setSelectedLeft(null);
     setAdderValues({ red: null, green: null, blue: null });
