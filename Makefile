@@ -13,7 +13,7 @@ dev: ## Start the development server
 	$(NPM_BIN)/vite
 
 build: ## Build the application for production
-	$(NPM_BIN)/vite build
+	npm run build
 
 preview: ## Preview the production build locally
 	$(NPM_BIN)/vite preview
