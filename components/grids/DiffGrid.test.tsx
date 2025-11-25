@@ -16,7 +16,7 @@ vi.mock('../CellComponent', () => {
     // Construct valid HTML attributes and data attributes
     const htmlProps: { [key: string]: any } = {
       'data-testid': 'square-cell',
-      'data-actual-value': props.actualValue, // Use props.actualValue directly
+      'data-actual-value': String(props.actualValue), // Explicitly cast to string
       'data-is-header': props.isHeader, // Use props.isHeader directly
       'data-is-left-header': props.isLeftHeader, // Use props.isLeftHeader directly
       'data-is-bottom-header': props.isBottomHeader, // Use props.isBottomHeader directly
@@ -87,7 +87,9 @@ describe('DiffGrid', () => {
   });
 
   it('calls onDiffChange with "red" when a red column cell is clicked', () => {
-    render(<DiffGrid {...commonProps} mode="diff" />);
+    // Set green to a positive value so red cells are clickable
+    const testDiffValues = { green: 10, red: null };
+    render(<DiffGrid {...commonProps} mode="diff" diffValues={testDiffValues} />);
     // Red column is COL 4. Find a cell in COL 4 (e.g., row 7)
     const redCell = screen.getAllByTestId('square-cell').find(
       (cell) =>
@@ -97,7 +99,7 @@ describe('DiffGrid', () => {
         cell.dataset.isBottomHeader === undefined // Not a bottom header
     );
     fireEvent.click(redCell!);
-    expect(commonProps.onDiffChange).toHaveBeenCalledWith('red', 7);
+    expect(commonProps.onDiffChange).toHaveBeenCalledWith('red', 4); // Expect 10 - 7 + 1 = 4
   });
 
   it('displays green blocks in green column up to diffValues.green', () => {
@@ -132,33 +134,79 @@ describe('DiffGrid', () => {
     }
   });
 
-  it('displays red blocks in red column up to diffValues.red', () => {
-    const diffValues = { green: 0, red: 3 };
-    render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValues} />);
-    for (let r = 1; r <= 3; r++) {
-      const redBlock = screen
+  it('displays red blocks in red column when green is 0 (empty)', () => {
+    // Scenario 1: green is 0 (or null), red column should be empty
+
+    const diffValuesGreenZero = { green: 0, red: 3 };
+
+    render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValuesGreenZero} />);
+
+    for (let r = 1; r <= 10; r++) {
+      const redColumnCell = screen
+
         .getAllByTestId('square-cell')
-        .find(
-          (cell) =>
-            cell.className.includes(`row-${r}`) && cell.className.includes('col-4') && cell.dataset.adderColor === 'red'
-        );
-      expect(redBlock).toBeInTheDocument();
-      expect(redBlock).toHaveTextContent(String(r));
+
+        .find((cell) => cell.className.includes(`col-4`) && cell.className.includes(`row-${r}`));
+
+      expect(redColumnCell).toBeInTheDocument();
+
+      // Expect them to be 'Empty' because green is 0
+
+      expect(redColumnCell).toHaveTextContent('Empty');
+
+      expect(redColumnCell).not.toHaveAttribute('data-adder-color');
     }
-    // Check cell above max red value displays its number but no adderColor
-    for (let r = 4; r <= 10; r++) {
-      const cellAboveRed = screen
-        .getAllByTestId('square-cell')
-        .find(
-          (cell) =>
-            cell.className.includes(`row-${r}`) &&
-            cell.className.includes('col-4') &&
-            cell.dataset.isLeftHeader === undefined &&
-            cell.dataset.isBottomHeader === undefined
-        );
-      expect(cellAboveRed).toBeInTheDocument();
-      expect(cellAboveRed).toHaveTextContent(String(r));
-      expect(cellAboveRed).not.toHaveAttribute('data-adder-color', 'red');
+  });
+
+  it('displays red blocks in red column with reduced height and inverted numbers when green is selected', () => {
+    // Scenario: green is selected, red column shows numbers up to green's value with inverted numbers
+
+    const diffValuesGreenSelected = { green: 5, red: 3 }; // green selected to 5, red selected to 3
+
+    render(<DiffGrid {...commonProps} mode="diff" diffValues={diffValuesGreenSelected} />);
+
+    // Verify mock calls for SquareCellComponent
+    const mockCalls = (SquareCellComponent as MockedFunction<typeof SquareCellComponent>).mock.calls;
+
+    // Filter calls for col-4 cells (RED_COL)
+    const redColumnCalls = mockCalls.filter((call) => {
+      const props = call[0]; // First argument is props
+      return props.className && props.className.includes('col-4');
+    });
+
+    // We expect 10 calls for col-4 (r=1 to 10)
+    expect(redColumnCalls).toHaveLength(10);
+
+    // Assertions for each cell in col-4
+    for (let r = 1; r <= 10; r++) {
+      const expectedR = r; // Row number for this iteration
+      let expectedActualValue: number | string = '';
+      let expectedAdderColor: 'red' | undefined = undefined; // Undefined means no color
+
+      // Determine expected values based on DiffGrid.tsx logic
+      const gVal = diffValuesGreenSelected.green || 0;
+      const rVal = diffValuesGreenSelected.red || 0;
+
+      if (gVal > 0 && expectedR <= gVal) {
+        expectedActualValue = gVal - expectedR + 1; // Inverted number
+        if (expectedActualValue <= rVal) {
+          expectedAdderColor = 'red';
+        }
+      } else {
+        expectedActualValue = ''; // Empty if not within green's height or green is 0
+      }
+
+      // Find the specific mock call for this row (r)
+      const mockCallIndex = 10 - expectedR; // Calculate index based on row number (maxY - r)
+      const props = redColumnCalls[mockCallIndex][0]; // Get props from the specific call
+
+      expect(props.actualValue).toEqual(expectedActualValue);
+      // Check adderColor only if it's expected to be present
+      if (expectedAdderColor) {
+        expect(props.adderColor).toEqual(expectedAdderColor);
+      } else {
+        expect(props.adderColor).toBeUndefined();
+      }
     }
   });
 

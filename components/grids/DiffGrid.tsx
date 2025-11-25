@@ -102,7 +102,7 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
         );
       } else {
         const isInputSlot = (c === GREEN_COL || c === RED_COL) && r <= 10;
-        const border = isInputSlot || c === DIFF_COL ? 'adder-cell-border' : 'border-none'; // Reusing adder's border class
+        const border = isInputSlot || c === DIFF_COL ? 'adder-cell-border' : 'border-none'; // Re-insert this line
 
         rowElements.push(
           <SquareCellComponent
