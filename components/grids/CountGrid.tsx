@@ -47,7 +47,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
 
   // Function to get absolute pixel coordinates of a cell
   const getCellCoordinates = useCallback(
-    (r: number, c: number) => {
+    (r: number, c: number, targetSide: 'center' | 'left' = 'center') => {
       const gridRect = gridRef.current?.getBoundingClientRect();
       if (!gridRect) return null;
 
@@ -59,7 +59,11 @@ export const CountGrid: React.FC<CountGridProps> = ({
 
       // Convert row/col to pixel coordinates (center of the cell)
       // Adjust for left header (headerDimPx)
-      const x = gridRect.left + headerDimPx + (c - 1) * actualCellWidth + actualCellWidth / 2;
+      let x = gridRect.left + headerDimPx + (c - 1) * actualCellWidth;
+      if (targetSide === 'center') {
+        x += actualCellWidth / 2;
+      }
+
       const y =
         gridRect.top + (maxY - r) * actualCellHeight + actualCellHeight / 2;
 
@@ -67,6 +71,24 @@ export const CountGrid: React.FC<CountGridProps> = ({
     },
     [maxX, maxY, getHeaderDimInPx] // Depend on maxX, maxY, and getHeaderDimInPx
   );
+
+  // useEffect for animation trigger
+  useEffect(() => {
+    if (selectedFruitId && currentCount > 0) { // Ensure currentCount is updated before animating
+      const selectedFruit = fruits.find((f) => f.id === selectedFruitId);
+      if (!selectedFruit) return;
+
+      const fruitCoords = getCellCoordinates(selectedFruit.row, selectedFruit.col);
+      const targetNumberCoords = getCellCoordinates(currentCount, maxX, 'left'); // Target is currentCount, align to left
+
+      if (fruitCoords && targetNumberCoords) {
+        const newLine: Line = {
+          x1: fruitCoords.x,
+          y1: fruitCoords.y,
+          x2: targetNumberCoords.x,
+          y2: targetNumberCoords.y,
+        };
+
 
   const rowElements = [];
   for (let r = maxY; r >= 1; r--) {
