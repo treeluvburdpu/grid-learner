@@ -1,5 +1,5 @@
 import React from 'react';
-import type { GridMode, Fruit } from '../types'; // Import Fruit type
+import type { GridMode, Fruit, Line } from '../types'; // Import Fruit type, Line
 import { AdderGrid } from './grids/AdderGrid';
 import { MultiplicationGridCore } from './grids/MultiplicationGridCore';
 import { DiffGrid } from './grids/DiffGrid'; // Import DiffGrid
@@ -22,7 +22,8 @@ interface MultiplicationGridProps {
   nextNumberToHighlight: number | null;
   currentCount: number;
   onFruitClick: (id: string, value: number) => void;
-  onNumberHighlight: (value: number) => void;
+  onLineComplete: (line: Line, highlightedNumber: number) => void; // New prop for completed lines
+  completedLines: Line[]; // New prop to pass completed lines
 }
 
 export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
@@ -42,7 +43,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   nextNumberToHighlight,
   currentCount,
   onFruitClick,
-  onNumberHighlight,
+  onLineComplete, // Destructure onLineComplete
+  completedLines, // Destructure completedLines
 }) => {
   switch (mode) {
     case 'adder':
@@ -66,7 +68,8 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
           nextNumberToHighlight={nextNumberToHighlight}
           currentCount={currentCount}
           onFruitClick={onFruitClick}
-          onNumberHighlight={onNumberHighlight}
+          onLineComplete={onLineComplete} // Pass onLineComplete
+          completedLines={completedLines} // Pass completedLines
         />
       );
     case '10':

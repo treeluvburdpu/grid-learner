@@ -2,7 +2,53 @@ import React, { useState, useCallback } from 'react';
 import { GridControls } from './components/GridControls';
 import { MultiplicationGrid } from './components/MultiplicationGrid';
 import { CurrentMultiplicationDisplay } from './components/CurrentMultiplicationDisplay';
-import type { GridMode, Fruit } from './types';
+import type { GridMode, Fruit, FruitType, Line } from './types'; // Import FruitType, Line
+
+const FRUIT_TYPES: FruitType[] = [
+  { name: 'Apple', icon: '🍎' },
+  { name: 'Banana', icon: '🍌' },
+  { name: 'Orange', icon: '🍊' },
+  { name: 'Grapes', icon: '🍇' },
+  { name: 'Watermelon', icon: '🍉' },
+  { name: 'Strawberry', icon: '🍓' },
+  { name: 'Peach', icon: '🍑' },
+  { name: 'Kiwi', icon: '🥝' },
+  { name: 'Pineapple', icon: '🍍' },
+  { name: 'Mango', icon: '🥭' },
+];
+
+const MAX_X_FRUIT = 19; // Max X for fruit placement (CountGrid maxX is 20, last column for numbers)
+const MAX_Y_FRUIT = 20; // Max Y for fruit placement (CountGrid maxY is 20)
+
+const generateRandomFruits = (numFruits: number): Fruit[] => {
+  const generatedFruits: Fruit[] = [];
+  const usedPositions = new Set<string>(); // To track occupied positions
+
+  for (let i = 0; i < numFruits; i++) {
+    let row: number, col: number;
+    let positionKey: string;
+
+    // Keep generating random positions until a unique one is found
+    do {
+      row = Math.floor(Math.random() * MAX_Y_FRUIT) + 1; // 1 to MAX_Y_FRUIT
+      col = Math.floor(Math.random() * MAX_X_FRUIT) + 1; // 1 to MAX_X_FRUIT
+      positionKey = `${row}-${col}`;
+    } while (usedPositions.has(positionKey));
+
+    usedPositions.add(positionKey);
+
+    const randomFruitType = FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
+
+    generatedFruits.push({
+      id: String(i + 1), // Simple ID for now
+      type: randomFruitType,
+      row,
+      col,
+      isCounted: false,
+    });
+  }
+  return generatedFruits;
+};
 
 const App: React.FC = () => {
   const [gridMode, setGridMode] = useState<GridMode>(() => {
@@ -30,24 +76,14 @@ const App: React.FC = () => {
   // Count Mode Placeholder State
   const [fruits, setFruits] = useState<Fruit[]>(() => {
     if (localStorage.getItem('gridMode') === 'counting') {
-      return [
-        { id: '1', type: { name: 'Apple', icon: '🍎' }, row: 1, col: 1, isCounted: false },
-        { id: '2', type: { name: 'Banana', icon: '🍌' }, row: 1, col: 2, isCounted: false },
-        { id: '3', type: { name: 'Orange', icon: '🍊' }, row: 1, col: 3, isCounted: false },
-        { id: '4', type: { name: 'Grapes', icon: '🍇' }, row: 1, col: 4, isCounted: false },
-        { id: '5', type: { name: 'Watermelon', icon: '🍉' }, row: 1, col: 5, isCounted: false },
-        { id: '6', type: { name: 'Strawberry', icon: '🍓' }, row: 2, col: 1, isCounted: false },
-        { id: '7', type: { name: 'Peach', icon: '🍑' }, row: 2, col: 2, isCounted: false },
-        { id: '8', type: { name: 'Kiwi', icon: '🥝' }, row: 2, col: 3, isCounted: false },
-        { id: '9', type: { name: 'Pineapple', icon: '🍍' }, row: 2, col: 4, isCounted: false },
-        { id: '10', type: { name: 'Mango', icon: '🥭' }, row: 2, col: 5, isCounted: false },
-      ];
+      return generateRandomFruits(10); // Generate 10 random fruits
     }
     return [];
   });
   const [selectedFruitId, setSelectedFruitId] = useState<string | null>(null);
   const [nextNumberToHighlight, setNextNumberToHighlight] = useState<number | null>(null);
   const [currentCount, setCurrentCount] = useState<number>(0);
+  const [completedLines, setCompletedLines] = useState<Line[]>([]); // New state for persistent lines
 
   const [showZeroResult, setShowZeroResult] = useState(false);
 
@@ -59,7 +95,12 @@ const App: React.FC = () => {
     setAdderValues({ red: null, green: null, blue: null });
     setDiffValues({ green: null, red: null });
     // Reset count-specific state
-    setFruits([]);
+    if (mode === 'counting') {
+      setFruits(generateRandomFruits(10)); // Generate new random fruits
+    } else {
+      setFruits([]);
+    }
+    setCompletedLines([]); // Clear completed lines
     setSelectedFruitId(null);
     setNextNumberToHighlight(null);
     setCurrentCount(0);
@@ -112,14 +153,11 @@ const App: React.FC = () => {
     setShowZeroResult(false);
   }, []);
 
-  const handleNumberHighlight = useCallback((value: number) => {
-    // This callback is triggered after the animation in CountGrid completes
-    // It confirms that the number has been successfully "counted" and animated to.
-    // We can potentially add more logic here if needed, but for now,
-    // the state updates mainly happen in handleFruitClick.
-    // Ensure nextNumberToHighlight is correctly updated if the animation completes
-    // and currentCount has just been updated.
-    setNextNumberToHighlight(value + 1);
+  // Renamed to onLineComplete to better reflect its purpose
+  const handleLineComplete = useCallback((completedLine: Line, highlightedNumber: number) => {
+    setCompletedLines((prevLines) => [...prevLines, completedLine]); // Add the completed line
+    setNextNumberToHighlight(highlightedNumber + 1); // Update the next number to highlight
+    // onNumberHighlight (from CountGrid) no longer needed to update nextNumberToHighlight
   }, []);
 
   const handleReset = useCallback(() => {
@@ -129,7 +167,8 @@ const App: React.FC = () => {
       setDiffValues({ green: null, red: null });
     } else if (gridMode === 'counting') {
       // Reset count-specific state
-      setFruits([]);
+      setFruits(generateRandomFruits(10)); // Generate new random fruits on reset
+      setCompletedLines([]); // Clear completed lines
       setSelectedFruitId(null);
       setNextNumberToHighlight(null);
       setCurrentCount(0);
@@ -174,7 +213,8 @@ const App: React.FC = () => {
               nextNumberToHighlight={nextNumberToHighlight}
               currentCount={currentCount}
               onFruitClick={handleFruitClick}
-              onNumberHighlight={handleNumberHighlight}
+              onLineComplete={handleLineComplete} // Pass the new handler
+              completedLines={completedLines} // Pass completed lines
             />
           </div>
         </main>

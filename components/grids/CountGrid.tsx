@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { SquareCellComponent } from '../CellComponent';
 import { HEADER_DIM } from '../../utils/constants';
-import type { GridMode, Fruit } from '../../types';
+import type { GridMode, Fruit, Line } from '../../types'; // Import Line
 
 interface CountGridProps {
   mode: GridMode;
@@ -11,7 +11,8 @@ interface CountGridProps {
   nextNumberToHighlight: number | null;
   currentCount: number;
   onFruitClick: (id: string, value: number) => void;
-  onNumberHighlight: (value: number) => void;
+  onLineComplete: (line: Line, highlightedNumber: number) => void; // New prop
+  completedLines: Line[]; // New prop
 }
 
 export const CountGrid: React.FC<CountGridProps> = ({
@@ -22,12 +23,13 @@ export const CountGrid: React.FC<CountGridProps> = ({
   nextNumberToHighlight,
   currentCount,
   onFruitClick,
-  onNumberHighlight,
+  onLineComplete, // Destructure new prop
+  completedLines, // Destructure new prop
 }) => {
   const maxX = 20; // Max X for grid content (excluding left header, including right number line)
   const maxY = 20; // Max Y for grid content
 
-  const [animatingLine, setAnimatingLine] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
+  const [animatingLine, setAnimatingLine] = useState<Line | null>(null); // Use Line type
   const [animationProgress, setAnimationProgress] = useState<number>(0); // 0 to 1 for line animation
   const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -36,25 +38,34 @@ export const CountGrid: React.FC<CountGridProps> = ({
   // Constants for animation
   const ANIMATION_DURATION = 500; // 0.5 seconds
 
+  // Utility to get HEADER_DIM in pixels
+  const getHeaderDimInPx = useCallback(() => {
+    // We assume HEADER_DIM is in 'rem'. Convert it to pixels using root font size.
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    return parseFloat(HEADER_DIM) * rootFontSize;
+  }, []);
+
   // Function to get absolute pixel coordinates of a cell
   const getCellCoordinates = useCallback(
     (r: number, c: number) => {
       const gridRect = gridRef.current?.getBoundingClientRect();
       if (!gridRect) return null;
 
+      const headerDimPx = getHeaderDimInPx();
+
       // Calculate actual pixel size of a dynamic cell
-      const actualCellWidth = (gridRect.width - parseInt(HEADER_DIM)) / maxX;
-      const actualCellHeight = (gridRect.height - parseInt(HEADER_DIM)) / maxY; // Adjusted for bottom header
+      const actualCellWidth = (gridRect.width - headerDimPx) / maxX;
+      const actualCellHeight = (gridRect.height - headerDimPx) / maxY;
 
       // Convert row/col to pixel coordinates (center of the cell)
-      // Adjust for left header (HEADER_DIM) and bottom-up rendering (maxY - r)
-      const x = gridRect.left + parseInt(HEADER_DIM) + (c - 1) * actualCellWidth + actualCellWidth / 2;
+      // Adjust for left header (headerDimPx)
+      const x = gridRect.left + headerDimPx + (c - 1) * actualCellWidth + actualCellWidth / 2;
       const y =
-        gridRect.top + gridRect.height - parseInt(HEADER_DIM) - (maxY - r) * actualCellHeight - actualCellHeight / 2;
+        gridRect.top + headerDimPx + (maxY - r) * actualCellHeight + actualCellHeight / 2;
 
       return { x, y };
     },
-    [maxX, maxY] // Depend on maxX, maxY as they are constants defined within component scope
+    [maxX, maxY, getHeaderDimInPx] // Depend on maxX, maxY, and getHeaderDimInPx
   );
 
   const rowElements = [];
@@ -87,19 +98,14 @@ export const CountGrid: React.FC<CountGridProps> = ({
       if (c === maxX) {
         // Right hand vertical number line
         cellContent = r; // Display the row number
-        if (nextNumberToHighlight !== null && r <= nextNumberToHighlight) {
-          // Highlight up to currentCount, and the next one
-          cellClassName += ' text-green-400 font-bold'; // Highlight next to count
+        if (r <= currentCount) {
+          cellClassName += ' text-green-400 font-bold'; // Highlight counted numbers
         } else {
           cellClassName += ' text-gray-700'; // Uncounted numbers
         }
-        console.log(`CountGrid (num line): r=${r}, c=${c}, cellContent=${cellContent}, cellClassName=${cellClassName}`);
       } else {
         // Grid area for fruits
         if (fruitInCell) {
-          console.log(
-            `CountGrid (fruit): r=${r}, c=${c}, fruit=${fruitInCell.type}, isCounted=${fruitInCell.isCounted}, selected=${selectedFruitId === fruitInCell.id}`
-          );
           cellContent = fruitInCell.type.icon;
           cellClassName += ` text-4xl sm:text-5xl `; // Styling for fruit emoji
           if (fruitInCell.id === selectedFruitId) {
@@ -111,10 +117,8 @@ export const CountGrid: React.FC<CountGridProps> = ({
             onClickHandler = () => onFruitClick(fruitInCell.id, currentCount + 1); // Pass next expected count
             cellClassName += ' cursor-pointer hover:bg-gray-800 ';
           }
-          console.log(`CountGrid (fruit): r=${r}, c=${c}, cellContent=${cellContent}, cellClassName=${cellClassName}`);
         } else {
           // Empty cell in fruit area
-          console.log(`CountGrid (empty): r=${r}, c=${c}, cellContent=${cellContent}, cellClassName=${cellClassName}`);
         }
       }
 
@@ -137,22 +141,21 @@ export const CountGrid: React.FC<CountGridProps> = ({
 
   // useEffect for animation trigger
   useEffect(() => {
-    if (selectedFruitId) {
-      // Simplified condition for animation trigger
+    if (selectedFruitId && currentCount > 0) { // Ensure currentCount is updated before animating
       const selectedFruit = fruits.find((f) => f.id === selectedFruitId);
       if (!selectedFruit) return;
 
       const fruitCoords = getCellCoordinates(selectedFruit.row, selectedFruit.col);
-      // Target number is currentCount, in the maxX column
-      const targetNumberCoords = getCellCoordinates(currentCount, maxX);
+      const targetNumberCoords = getCellCoordinates(currentCount, maxX); // Target is currentCount
 
       if (fruitCoords && targetNumberCoords) {
-        setAnimatingLine({
+        const newLine: Line = {
           x1: fruitCoords.x,
           y1: fruitCoords.y,
           x2: targetNumberCoords.x,
           y2: targetNumberCoords.y,
-        });
+        };
+        setAnimatingLine(newLine);
         setAnimationProgress(0); // Reset animation
 
         startTimeRef.current = performance.now();
@@ -166,8 +169,8 @@ export const CountGrid: React.FC<CountGridProps> = ({
             animationRef.current = requestAnimationFrame(animate);
           } else {
             // Animation complete
-            setAnimatingLine(null); // Clear line
-            onNumberHighlight(currentCount); // Highlight the number
+            onLineComplete(newLine, currentCount); // Pass the completed line and the number it points to
+            setAnimatingLine(null); // Clear the animating line
             startTimeRef.current = null; // Reset startTime
           }
         };
@@ -180,7 +183,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [selectedFruitId, fruits, getCellCoordinates, onNumberHighlight, maxX, maxY, currentCount]);
+  }, [selectedFruitId, fruits, getCellCoordinates, onLineComplete, maxX, maxY, currentCount]); // Add onLineComplete to dependencies
 
   return (
     <div
@@ -195,7 +198,21 @@ export const CountGrid: React.FC<CountGridProps> = ({
       aria-colcount={maxX + 1}
     >
       {rowElements}
-      {/* SVG for animation */}
+      {/* SVG for completed lines */}
+      <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+        {completedLines.map((line, index) => (
+          <line
+            key={`completed-line-${index}`}
+            x1={line.x1}
+            y1={line.y1}
+            x2={line.x2}
+            y2={line.y2}
+            stroke="green"
+            strokeWidth="2"
+          />
+        ))}
+      </svg>
+      {/* SVG for animating line */}
       {animatingLine && (
         <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
           <line
