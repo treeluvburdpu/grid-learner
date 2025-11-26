@@ -33,40 +33,27 @@ export const CountGrid: React.FC<CountGridProps> = ({
   const startTimeRef = useRef<number | null>(null);
   const gridRef = useRef<HTMLDivElement>(null); // New ref for the grid container
 
+  const [fruitRects, setFruitRects] = useState<{ [id: string]: DOMRect }>({});
+  const [numberRects, setNumberRects] = useState<{ [row: number]: DOMRect }>({});
+
   // Constants for animation
   const ANIMATION_DURATION = 500; // 0.5 seconds
 
-  // Utility to get HEADER_DIM in pixels
-  const getHeaderDimInPx = useCallback(() => {
-    // We assume HEADER_DIM is in 'rem'. Convert it to pixels using root font size.
-    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    return parseFloat(HEADER_DIM) * rootFontSize;
-  }, []);
-
-  // Function to get absolute pixel coordinates of a cell
-  const getCellCoordinates = useCallback(
-    (r: number, c: number, targetSide: 'center' | 'left' = 'center') => {
-      const gridRect = gridRef.current?.getBoundingClientRect();
-      if (!gridRect) return null;
-
-      const headerDimPx = getHeaderDimInPx();
-
-      // Calculate actual pixel size of a dynamic cell
-      const actualCellWidth = (gridRect.width - headerDimPx) / maxX;
-      const actualCellHeight = (gridRect.height - headerDimPx) / maxY;
-
-      // Convert row/col to pixel coordinates (center of the cell)
-      // Adjust for left header (headerDimPx)
-      let x = gridRect.left + headerDimPx + (c - 1) * actualCellWidth;
-      if (targetSide === 'center') {
-        x += actualCellWidth / 2;
+  const handleCellMeasure = useCallback(
+    (row: number, col: number, rect: DOMRect) => {
+      // For fruits (content cells)
+      if (col < maxX) {
+        // Find the fruit at this position
+        const fruitInCell = fruits.find((f) => f.row === row && f.col === col);
+        if (fruitInCell) {
+          setFruitRects((prev) => ({ ...prev, [fruitInCell.id]: rect }));
+        }
+      } else if (col === maxX) {
+        // For number line cells
+        setNumberRects((prev) => ({ ...prev, [row]: rect }));
       }
-
-      const y = gridRect.top + (maxY - r) * actualCellHeight + actualCellHeight / 2;
-
-      return { x, y };
     },
-    [maxX, maxY, getHeaderDimInPx] // Depend on maxX, maxY, and getHeaderDimInPx
+    [fruits, maxX]
   );
 
   const rowElements = [];
@@ -84,6 +71,9 @@ export const CountGrid: React.FC<CountGridProps> = ({
         borderClasses=""
         baseSizeClasses="w-full h-full"
         className="text-transparent"
+        row={r} // Pass row
+        col={0} // Left header column is 0
+        onMeasure={handleCellMeasure}
       />
     );
 
@@ -138,6 +128,9 @@ export const CountGrid: React.FC<CountGridProps> = ({
           baseSizeClasses="aspect-square"
           className={cellClassName} // Use the constructed className
           subContent={subContent} // Pass subContent here
+          row={r} // Pass row
+          col={c} // Pass col
+          onMeasure={handleCellMeasure}
         />
       );
     }
@@ -150,15 +143,15 @@ export const CountGrid: React.FC<CountGridProps> = ({
       const selectedFruit = fruits.find((f) => f.id === selectedFruitId);
       if (!selectedFruit) return;
 
-      const fruitCoords = getCellCoordinates(selectedFruit.row, selectedFruit.col);
-      const targetNumberCoords = getCellCoordinates(currentCount, maxX, 'left'); // Target is currentCount, align to left
+      const fruitRect = fruitRects[selectedFruit.id];
+      const numberRect = numberRects[currentCount];
 
-      if (fruitCoords && targetNumberCoords) {
+      if (fruitRect && numberRect) {
         const newLine: Line = {
-          x1: fruitCoords.x,
-          y1: fruitCoords.y,
-          x2: targetNumberCoords.x,
-          y2: targetNumberCoords.y,
+          x1: fruitRect.left + fruitRect.width / 2, // Center of fruit
+          y1: fruitRect.top + fruitRect.height / 2, // Center of fruit
+          x2: numberRect.left, // Left edge of number cell
+          y2: numberRect.top + numberRect.height / 2, // Center of number
         };
         setAnimatingLine(newLine);
         setAnimationProgress(0); // Reset animation
@@ -188,7 +181,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [selectedFruitId, fruits, getCellCoordinates, onLineComplete, maxX, maxY, currentCount]); // Add onLineComplete to dependencies
+  }, [selectedFruitId, fruits, onLineComplete, maxX, maxY, currentCount, fruitRects, numberRects, handleCellMeasure]); // Added rects to dependencies
 
   return (
     <div
@@ -240,6 +233,9 @@ export const CountGrid: React.FC<CountGridProps> = ({
         baseSizeClasses="w-full h-full"
         className="text-transparent"
         style={{ width: HEADER_DIM, height: HEADER_DIM }}
+        row={0}
+        col={0} // Pass row and col for the 0 cell
+        onMeasure={handleCellMeasure}
       />
 
       {/* Bottom Headers (mostly empty for counting) */}
@@ -254,6 +250,9 @@ export const CountGrid: React.FC<CountGridProps> = ({
             mode={mode}
             borderClasses="border-t border-white/30"
             baseSizeClasses="w-full h-full"
+            row={0}
+            col={num} // Pass row and col for bottom headers
+            onMeasure={handleCellMeasure}
           />
         );
       })}
