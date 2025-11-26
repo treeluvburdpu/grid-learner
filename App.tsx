@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { GridControls } from './components/GridControls';
 import { MultiplicationGrid } from './components/MultiplicationGrid';
 import { CurrentMultiplicationDisplay } from './components/CurrentMultiplicationDisplay';
-import type { GridMode } from './types';
+import type { GridMode, Fruit } from './types';
 
 const App: React.FC = () => {
   const [gridMode, setGridMode] = useState<GridMode>(() => {
@@ -27,6 +27,28 @@ const App: React.FC = () => {
     red: null,
   });
 
+  // Count Mode Placeholder State
+  const [fruits, setFruits] = useState<Fruit[]>(() => {
+    if (localStorage.getItem('gridMode') === 'counting') {
+      return [
+        { id: '1', type: { name: 'Apple', icon: '🍎' }, row: 1, col: 1, isCounted: false },
+        { id: '2', type: { name: 'Banana', icon: '🍌' }, row: 1, col: 2, isCounted: false },
+        { id: '3', type: { name: 'Orange', icon: '🍊' }, row: 1, col: 3, isCounted: false },
+        { id: '4', type: { name: 'Grapes', icon: '🍇' }, row: 1, col: 4, isCounted: false },
+        { id: '5', type: { name: 'Watermelon', icon: '🍉' }, row: 1, col: 5, isCounted: false },
+        { id: '6', type: { name: 'Strawberry', icon: '🍓' }, row: 2, col: 1, isCounted: false },
+        { id: '7', type: { name: 'Peach', icon: '🍑' }, row: 2, col: 2, isCounted: false },
+        { id: '8', type: { name: 'Kiwi', icon: '🥝' }, row: 2, col: 3, isCounted: false },
+        { id: '9', type: { name: 'Pineapple', icon: '🍍' }, row: 2, col: 4, isCounted: false },
+        { id: '10', type: { name: 'Mango', icon: '🥭' }, row: 2, col: 5, isCounted: false },
+      ];
+    }
+    return [];
+  });
+  const [selectedFruitId, setSelectedFruitId] = useState<string | null>(null);
+  const [nextNumberToHighlight, setNextNumberToHighlight] = useState<number | null>(null);
+  const [currentCount, setCurrentCount] = useState<number>(0);
+
   const [showZeroResult, setShowZeroResult] = useState(false);
 
   const handleGridModeChange = useCallback((mode: GridMode) => {
@@ -35,7 +57,12 @@ const App: React.FC = () => {
     setSelectedTop(null);
     setSelectedLeft(null);
     setAdderValues({ red: null, green: null, blue: null });
-    setDiffValues({ green: null, red: null }); // Add this line for diff mode
+    setDiffValues({ green: null, red: null });
+    // Reset count-specific state
+    setFruits([]);
+    setSelectedFruitId(null);
+    setNextNumberToHighlight(null);
+    setCurrentCount(0);
     setShowZeroResult(false);
   }, []);
 
@@ -74,12 +101,38 @@ const App: React.FC = () => {
     setShowZeroResult(false);
   }, []);
 
+  // Count Handlers
+  const handleFruitClick = useCallback((id: string, value: number) => {
+    setFruits((prevFruits) =>
+      prevFruits.map((fruit) => (fruit.id === id ? { ...fruit, isCounted: true } : fruit))
+    );
+    setSelectedFruitId(id);
+    setCurrentCount(value); // This is the count AFTER clicking the fruit
+    setNextNumberToHighlight(value + 1); // Set the next number to be highlighted
+    setShowZeroResult(false);
+  }, []);
+
+  const handleNumberHighlight = useCallback((value: number) => {
+    // This callback is triggered after the animation in CountGrid completes
+    // It confirms that the number has been successfully "counted" and animated to.
+    // We can potentially add more logic here if needed, but for now,
+    // the state updates mainly happen in handleFruitClick.
+    // Ensure nextNumberToHighlight is correctly updated if the animation completes
+    // and currentCount has just been updated.
+    setNextNumberToHighlight(value + 1);
+  }, []);
+
   const handleReset = useCallback(() => {
     if (gridMode === 'adder') {
       setAdderValues({ red: null, green: null, blue: null });
     } else if (gridMode === 'diff') {
-      // Add this condition for diff mode
       setDiffValues({ green: null, red: null });
+    } else if (gridMode === 'counting') {
+      // Reset count-specific state
+      setFruits([]);
+      setSelectedFruitId(null);
+      setNextNumberToHighlight(null);
+      setCurrentCount(0);
     } else {
       setSelectedTop(null);
       setSelectedLeft(null);
@@ -96,7 +149,9 @@ const App: React.FC = () => {
             ? 'Select height in colored columns to add.'
             : gridMode === 'diff'
               ? 'Select green column for minuend, red for subtrahend.'
-              : 'Select numbers on edge. Grid is scrollable.'}
+              : gridMode === 'counting'
+                ? 'Count the fruits by selecting them in order.'
+                : 'Select numbers on edge. Grid is scrollable.'}
         </header>
 
         {/* Main Content: Grid - Flex Col Reverse for bottom-anchored scrolling */}
@@ -113,6 +168,13 @@ const App: React.FC = () => {
               onAdderChange={handleAdderChange}
               diffValues={diffValues} // Pass diffValues
               onDiffChange={handleDiffChange} // Pass onDiffChange
+              // Count Mode Placeholder Props
+              fruits={fruits}
+              selectedFruitId={selectedFruitId}
+              nextNumberToHighlight={nextNumberToHighlight}
+              currentCount={currentCount}
+              onFruitClick={handleFruitClick}
+              onNumberHighlight={handleNumberHighlight}
             />
           </div>
         </main>

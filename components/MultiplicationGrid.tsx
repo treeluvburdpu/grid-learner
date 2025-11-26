@@ -1,8 +1,9 @@
 import React from 'react';
-import type { GridMode } from '../types';
+import type { GridMode, Fruit } from '../types'; // Import Fruit type
 import { AdderGrid } from './grids/AdderGrid';
 import { MultiplicationGridCore } from './grids/MultiplicationGridCore';
 import { DiffGrid } from './grids/DiffGrid'; // Import DiffGrid
+import { CountGrid } from './grids/CountGrid'; // Import CountGrid
 
 interface MultiplicationGridProps {
   mode: GridMode;
@@ -15,6 +16,13 @@ interface MultiplicationGridProps {
   onAdderChange?: (color: 'red' | 'green' | 'blue', value: number) => void;
   diffValues?: { green: number | null; red: number | null }; // New prop for DiffGrid
   onDiffChange?: (color: 'green' | 'red', value: number) => void; // New prop for DiffGrid
+  // Count Mode Placeholder Props
+  fruits: Fruit[]; // Use Fruit type
+  selectedFruitId: string | null;
+  nextNumberToHighlight: number | null;
+  currentCount: number;
+  onFruitClick: (id: string, value: number) => void;
+  onNumberHighlight: (value: number) => void;
 }
 
 export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
@@ -28,6 +36,13 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   onAdderChange,
   diffValues, // Destructure diffValues
   onDiffChange, // Destructure onDiffChange
+  // Destructure Count Mode Placeholder Props
+  fruits,
+  selectedFruitId,
+  nextNumberToHighlight,
+  currentCount,
+  onFruitClick,
+  onNumberHighlight,
 }) => {
   switch (mode) {
     case 'adder':
@@ -39,6 +54,19 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
           onReset={onReset}
           diffValues={diffValues} // Pass diffValues
           onDiffChange={onDiffChange} // Pass onDiffChange
+        />
+      );
+    case 'counting': // Add case for count mode
+      return (
+        <CountGrid
+          mode={mode}
+          onReset={onReset}
+          fruits={fruits}
+          selectedFruitId={selectedFruitId}
+          nextNumberToHighlight={nextNumberToHighlight}
+          currentCount={currentCount}
+          onFruitClick={onFruitClick}
+          onNumberHighlight={onNumberHighlight}
         />
       );
     case '10':

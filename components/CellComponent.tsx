@@ -129,6 +129,10 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
         effectiveDisplayContent = actualValue;
         textStyleClass += ` text-gray-700`; // Prepopulate with dark grey numbers
         ariaLabel = 'Grid cell';
+      } else if (mode === 'counting' && actualValue !== '') {
+        effectiveDisplayContent = actualValue;
+        textStyleClass += ` text-white`; // Use white for fruit emojis
+        ariaLabel = 'Fruit cell';
       } else if (isChangeHighlightedYellow) {
         effectiveDisplayContent = actualValue;
         textStyleClass += ` text-yellow-500`;
