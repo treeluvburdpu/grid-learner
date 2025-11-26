@@ -61,7 +61,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
       // Adjust for left header (headerDimPx)
       const x = gridRect.left + headerDimPx + (c - 1) * actualCellWidth + actualCellWidth / 2;
       const y =
-        gridRect.top + headerDimPx + (maxY - r) * actualCellHeight + actualCellHeight / 2;
+        gridRect.top + (maxY - r) * actualCellHeight + actualCellHeight / 2;
 
       return { x, y };
     },
@@ -134,6 +134,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
           mode={mode}
           baseSizeClasses="aspect-square"
           className={cellClassName} // Use the constructed className
+
         />
       );
     }
