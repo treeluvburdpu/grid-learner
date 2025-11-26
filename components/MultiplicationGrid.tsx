@@ -19,7 +19,6 @@ interface MultiplicationGridProps {
   // Count Mode Placeholder Props
   fruits: Fruit[]; // Use Fruit type
   selectedFruitId: string | null;
-  nextNumberToHighlight: number | null;
   currentCount: number;
   onFruitClick: (id: string, value: number) => void;
   onLineComplete: (line: Line, highlightedNumber: number) => void; // New prop for completed lines
@@ -40,7 +39,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
   // Destructure Count Mode Placeholder Props
   fruits,
   selectedFruitId,
-  nextNumberToHighlight,
   currentCount,
   onFruitClick,
   onLineComplete, // Destructure onLineComplete
@@ -65,7 +63,6 @@ export const MultiplicationGrid: React.FC<MultiplicationGridProps> = ({
           onReset={onReset}
           fruits={fruits}
           selectedFruitId={selectedFruitId}
-          nextNumberToHighlight={nextNumberToHighlight}
           currentCount={currentCount}
           onFruitClick={onFruitClick}
           onLineComplete={onLineComplete} // Pass onLineComplete

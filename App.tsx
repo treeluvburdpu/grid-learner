@@ -81,7 +81,6 @@ const App: React.FC = () => {
     return [];
   });
   const [selectedFruitId, setSelectedFruitId] = useState<string | null>(null);
-  const [nextNumberToHighlight, setNextNumberToHighlight] = useState<number | null>(null);
   const [currentCount, setCurrentCount] = useState<number>(0);
   const [completedLines, setCompletedLines] = useState<Line[]>([]); // New state for persistent lines
 
@@ -102,7 +101,6 @@ const App: React.FC = () => {
     }
     setCompletedLines([]); // Clear completed lines
     setSelectedFruitId(null);
-    setNextNumberToHighlight(null);
     setCurrentCount(0);
     setShowZeroResult(false);
   }, []);
@@ -144,20 +142,16 @@ const App: React.FC = () => {
 
   // Count Handlers
   const handleFruitClick = useCallback((id: string, value: number) => {
-    setFruits((prevFruits) =>
-      prevFruits.map((fruit) => (fruit.id === id ? { ...fruit, isCounted: true } : fruit))
-    );
+    setFruits((prevFruits) => prevFruits.map((fruit) => (fruit.id === id ? { ...fruit, isCounted: true } : fruit)));
     setSelectedFruitId(id);
     setCurrentCount(value); // This is the count AFTER clicking the fruit
-    setNextNumberToHighlight(value + 1); // Set the next number to be highlighted
     setShowZeroResult(false);
   }, []);
 
   // Renamed to onLineComplete to better reflect its purpose
-  const handleLineComplete = useCallback((completedLine: Line, highlightedNumber: number) => {
+  const handleLineComplete = useCallback((completedLine: Line) => {
     setCompletedLines((prevLines) => [...prevLines, completedLine]); // Add the completed line
-    setNextNumberToHighlight(highlightedNumber + 1); // Update the next number to highlight
-    // onNumberHighlight (from CountGrid) no longer needed to update nextNumberToHighlight
+    // The number highlighting is now solely controlled by currentCount in CountGrid
   }, []);
 
   const handleReset = useCallback(() => {
@@ -170,7 +164,6 @@ const App: React.FC = () => {
       setFruits(generateRandomFruits(10)); // Generate new random fruits on reset
       setCompletedLines([]); // Clear completed lines
       setSelectedFruitId(null);
-      setNextNumberToHighlight(null);
       setCurrentCount(0);
     } else {
       setSelectedTop(null);
@@ -210,7 +203,6 @@ const App: React.FC = () => {
               // Count Mode Placeholder Props
               fruits={fruits}
               selectedFruitId={selectedFruitId}
-              nextNumberToHighlight={nextNumberToHighlight}
               currentCount={currentCount}
               onFruitClick={handleFruitClick}
               onLineComplete={handleLineComplete} // Pass the new handler

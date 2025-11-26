@@ -8,7 +8,6 @@ interface CountGridProps {
   onReset: () => void;
   fruits: Fruit[];
   selectedFruitId: string | null;
-  nextNumberToHighlight: number | null;
   currentCount: number;
   onFruitClick: (id: string, value: number) => void;
   onLineComplete: (line: Line, highlightedNumber: number) => void; // New prop
@@ -20,7 +19,6 @@ export const CountGrid: React.FC<CountGridProps> = ({
   onReset,
   fruits,
   selectedFruitId,
-  nextNumberToHighlight,
   currentCount,
   onFruitClick,
   onLineComplete, // Destructure new prop
@@ -64,31 +62,12 @@ export const CountGrid: React.FC<CountGridProps> = ({
         x += actualCellWidth / 2;
       }
 
-      const y =
-        gridRect.top + (maxY - r) * actualCellHeight + actualCellHeight / 2;
+      const y = gridRect.top + (maxY - r) * actualCellHeight + actualCellHeight / 2;
 
       return { x, y };
     },
     [maxX, maxY, getHeaderDimInPx] // Depend on maxX, maxY, and getHeaderDimInPx
   );
-
-  // useEffect for animation trigger
-  useEffect(() => {
-    if (selectedFruitId && currentCount > 0) { // Ensure currentCount is updated before animating
-      const selectedFruit = fruits.find((f) => f.id === selectedFruitId);
-      if (!selectedFruit) return;
-
-      const fruitCoords = getCellCoordinates(selectedFruit.row, selectedFruit.col);
-      const targetNumberCoords = getCellCoordinates(currentCount, maxX, 'left'); // Target is currentCount, align to left
-
-      if (fruitCoords && targetNumberCoords) {
-        const newLine: Line = {
-          x1: fruitCoords.x,
-          y1: fruitCoords.y,
-          x2: targetNumberCoords.x,
-          y2: targetNumberCoords.y,
-        };
-
 
   const rowElements = [];
   for (let r = maxY; r >= 1; r--) {
@@ -111,6 +90,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
     for (let c = 1; c <= maxX; c++) {
       const cellKey = `cell-${r}-${c}`;
       let cellContent: React.ReactNode = '';
+      let subContent: React.ReactNode = null; // Declare subContent here
       let onClickHandler: (() => void) | undefined = undefined;
       let cellClassName = `row-${r} col-${c} `;
 
@@ -133,6 +113,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
           if (fruitInCell.id === selectedFruitId) {
             // Highlight the currently selected fruit
             cellClassName += ' ring-2 ring-blue-400 ring-offset-2 ring-offset-black '; // Example highlight style
+            subContent = currentCount; // Set subContent here
           } else if (fruitInCell.isCounted) {
             cellClassName += ' opacity-50 '; // Dim counted fruits
           } else {
@@ -156,7 +137,7 @@ export const CountGrid: React.FC<CountGridProps> = ({
           mode={mode}
           baseSizeClasses="aspect-square"
           className={cellClassName} // Use the constructed className
-
+          subContent={subContent} // Pass subContent here
         />
       );
     }
@@ -164,12 +145,13 @@ export const CountGrid: React.FC<CountGridProps> = ({
 
   // useEffect for animation trigger
   useEffect(() => {
-    if (selectedFruitId && currentCount > 0) { // Ensure currentCount is updated before animating
+    if (selectedFruitId && currentCount > 0) {
+      // Ensure currentCount is updated before animating
       const selectedFruit = fruits.find((f) => f.id === selectedFruitId);
       if (!selectedFruit) return;
 
       const fruitCoords = getCellCoordinates(selectedFruit.row, selectedFruit.col);
-      const targetNumberCoords = getCellCoordinates(currentCount, maxX); // Target is currentCount
+      const targetNumberCoords = getCellCoordinates(currentCount, maxX, 'left'); // Target is currentCount, align to left
 
       if (fruitCoords && targetNumberCoords) {
         const newLine: Line = {
