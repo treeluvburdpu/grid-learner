@@ -11,7 +11,12 @@
 }
 
 .text-sm {
+}
+
+.cell-superscript {
     font-size: 0.7em;
+    color: #0D0;
+    background-color: #0006;
 }
 
 /* Base styles for all cells when in adder mode */

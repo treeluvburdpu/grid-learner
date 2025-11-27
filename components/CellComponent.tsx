@@ -205,7 +205,7 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
                 }
             >
                 {subContent && (
-                    <div className="absolute top-0 right-0 text-sm text-green-500 font-bold px-0 py-0 leading-none">
+                    <div className="absolute top-0 right-0 cell-superscript font-bold px-0 py-0 leading-none">
                         {subContent}
                     </div>
                 )}
