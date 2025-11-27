@@ -128,9 +128,6 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
                 } else if (adderColor === 'blue') {
                     bgClass = 'bg-blue-900/40 border-blue-500/30';
                     textStyleClass += ' text-blue-400';
-                } else if (adderColor === 'darkgrey') {
-                    bgClass = 'bg-gray-950/40 border-gray-600/30';
-                    textStyleClass += ' text-gray-700';
                 } else if (adderColor === 'mixed') {
                     // Assuming 'mixed' could be a future state
                     bgClass = 'bg-purple-900/40 border-purple-500/30';
@@ -208,7 +205,7 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
                 }
             >
                 {subContent && (
-                    <div className="absolute top-0 right-0 text-xs text-green-600 font-bold px-0 py-0 leading-none">
+                    <div className="absolute top-0 right-0 text-sm text-green-500 font-bold px-0 py-0 leading-none">
                         {subContent}
                     </div>
                 )}

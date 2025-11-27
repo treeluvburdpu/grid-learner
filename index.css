@@ -10,6 +10,10 @@
   transition-timing-function: ease-in-out; /* For smooth animation */
 }
 
+.text-sm {
+    font-size: 0.7em;
+}
+
 /* Base styles for all cells when in adder mode */
 .adder-cell-border {
   border-width: 1px;

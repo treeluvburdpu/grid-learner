@@ -142,7 +142,9 @@ const App: React.FC = () => {
 
   // Count Handlers
   const handleFruitClick = useCallback((id: string, value: number) => {
-    setFruits((prevFruits) => prevFruits.map((fruit) => (fruit.id === id ? { ...fruit, isCounted: true } : fruit)));
+    setFruits((prevFruits) =>
+      prevFruits.map((fruit) => (fruit.id === id ? { ...fruit, isCounted: true, countValue: value } : fruit))
+    );
     setSelectedFruitId(id);
     setCurrentCount(value); // This is the count AFTER clicking the fruit
     setShowZeroResult(false);

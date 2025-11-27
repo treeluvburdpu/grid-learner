@@ -11,6 +11,7 @@ export interface Fruit {
   row: number;
   col: number;
   isCounted: boolean;
+  countValue?: number; // New optional property
 }
 
 export interface Line {
