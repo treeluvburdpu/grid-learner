@@ -4,7 +4,7 @@
 
 1. The grid displays a vertical number line starting from zero.
     1. Each number is dark gray to indicate that is it not active.
-        1. Use four-character hex values to specify opacity, such as `#FFF4` so that the opacity of the text doesn't affect any other opacity of the element.
+        1. Use RGB values to specify opacity, such as `#FFF4` or `rgb(255, 255, 255 / var(--tw-text-opacity, 1))` so that the opacity of the text doesn't affect any other opacity of the element.
 2. Unicode fruit icons are scattered around the grid.
     1. Each fruit is 80% transparent to indicate that it is not active.
     2. Fruits are not placed in the column next to the numger line.

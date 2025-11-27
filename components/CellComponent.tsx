@@ -21,7 +21,6 @@ interface SquareCellProps {
   style?: React.CSSProperties;
   isLeftHeader?: boolean;
   isMaxValueCell?: boolean;
-  isDimmed?: boolean;
   adderColor?: 'red' | 'green' | 'blue' | 'darkgrey' | 'mixed';
   subContent?: React.ReactNode; // New prop for sub-content (e.g., small number in corner)
   row?: number; // New prop
@@ -65,7 +64,6 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
     style,
     isLeftHeader,
     isMaxValueCell,
-    isDimmed,
     adderColor,
     subContent, // Destructure new prop
     row, // Destructure new prop
@@ -144,8 +142,7 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
         ariaLabel = 'Grid cell';
       } else if (mode === 'counting' && actualValue !== '') {
         effectiveDisplayContent = actualValue;
-        textStyleClass += ` text-white`; // Use white for fruit emojis
-        ariaLabel = 'Fruit cell';
+        // Text color and aria-label will be handled by CountGrid via className
       } else if (isChangeHighlightedYellow) {
         effectiveDisplayContent = actualValue;
         textStyleClass += ` text-yellow-500`;
@@ -169,12 +166,10 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
       finalStyle.outlineOffset = '-2px';
     }
 
-    const opacityClass = isDimmed ? 'opacity-75' : 'opacity-100';
-
     return (
       <div
         ref={cellRef} // Attach ref here
-        className={`grid-cell-base relative flex items-center justify-center ${baseSizeClasses} ${textStyleClass} ${bgClass} ${borderClasses} ${interactiveClasses} ${className || ''} ${opacityClass}`}
+        className={`grid-cell-base relative flex items-center justify-center ${baseSizeClasses} ${textStyleClass} ${bgClass} ${borderClasses} ${interactiveClasses} ${className || ''}`}
         style={finalStyle}
         onClick={onClick}
         onMouseEnter={onMouseEnter}

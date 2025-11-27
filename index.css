@@ -38,3 +38,24 @@
 .grid-no-gap {
   gap: 0px;
 }
+
+/* New custom classes for CountGrid fruit styling */
+.fruit-base {
+  @apply text-4xl sm:text-5xl cursor-pointer hover:bg-gray-800; /* Common styles for fruits */
+}
+
+.fruit-inactive {
+  @apply opacity-[0.2]; /* 80% transparent */
+}
+
+.fruit-selected {
+  @apply opacity-100 ring-2 ring-blue-400 ring-offset-2 ring-offset-black; /* Fully opaque with ring */
+}
+
+.fruit-active-in-chain {
+  @apply opacity-100; /* Fully opaque, no ring, but has a number attached */
+}
+
+.fruit-counted {
+  @apply opacity-[0.2]; /* 80% transparent when counted */
+}
