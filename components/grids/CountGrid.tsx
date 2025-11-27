@@ -149,10 +149,10 @@ export const CountGrid: React.FC<CountGridProps> = ({
 
             if (fruitRect && numberRect) {
                 const newLine: Line = {
-                    x1: fruitRect.left + fruitRect.width / 2, // Center of fruit
-                    y1: fruitRect.top + fruitRect.height / 2, // Center of fruit
-                    x2: numberRect.left, // Left edge of number cell
-                    y2: numberRect.top + numberRect.height / 2, // Center of number
+                    x1: fruitRect.right, // Center of fruit
+                    y1: fruitRect.top - fruitRect.height / 2, // Center of fruit
+                    x2: numberRect.left - numberRect.width / 2, // Left edge of number cell
+                    y2: numberRect.top - numberRect.height / 2, // Center of number
                 };
                 setAnimatingLine(newLine);
                 setAnimationProgress(0); // Reset animation
@@ -206,8 +206,8 @@ export const CountGrid: React.FC<CountGridProps> = ({
                         y1={line.y1}
                         x2={line.x2}
                         y2={line.y2}
-                        stroke="green"
-                        strokeWidth="2"
+                        stroke="#0d05"
+                        strokeWidth="4"
                     />
                 ))}
             </svg>
