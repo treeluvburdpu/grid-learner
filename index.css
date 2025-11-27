@@ -10,13 +10,14 @@
   transition-timing-function: ease-in-out; /* For smooth animation */
 }
 
-.text-sm {
+.text-gray-800 {
+    color: #333;
 }
 
 .cell-superscript {
-    font-size: 0.7em;
-    color: #0D0;
-    background-color: #0006;
+  font-size: 0.7em;
+  color: #0d0;
+  background-color: #0006;
 }
 
 /* Base styles for all cells when in adder mode */
