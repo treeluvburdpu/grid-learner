@@ -17,7 +17,6 @@ interface SquareCellProps {
   isChangeHighlightedYellow?: boolean;
   borderClasses: string;
   mode: GridMode;
-  baseSizeClasses?: string;
   style?: React.CSSProperties;
   isLeftHeader?: boolean;
   isMaxValueCell?: boolean;
@@ -60,7 +59,6 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
     isChangeHighlightedYellow,
     borderClasses,
     mode,
-    baseSizeClasses,
     style,
     isLeftHeader,
     isMaxValueCell,
@@ -78,99 +76,97 @@ export const SquareCellComponent: React.FC<SquareCellProps> = React.memo(
       }
     }, [onMeasure, row, col]);
 
+    const appliedClasses: string[] = ['grid-cell-base', 'relative', 'flex', 'items-center', 'justify-center'];
     let effectiveDisplayContent: React.ReactNode = '';
-    let textStyleClass = '';
-    let bgClass = 'bg-transparent';
     const interactiveClasses = onClick ? 'cursor-pointer' : '';
     let ariaLabel = '';
 
     const dynamicTextSize = getDataFontSize(actualValue);
+    appliedClasses.push(dynamicTextSize);
+    appliedClasses.push('font-bold', 'leading-none'); // Apply default font-bold and leading-none for all content
 
     if (isHeader) {
-      if (mode === 'adder' && adderColor) {
-        if (adderColor === 'red') textStyleClass = `${dynamicTextSize} text-red-400 font-bold`;
-        else if (adderColor === 'green') textStyleClass = `${dynamicTextSize} text-green-400 font-bold`;
-        else if (adderColor === 'blue') textStyleClass = `${dynamicTextSize} text-blue-400 font-bold`;
-        else if (adderColor === 'darkgrey') textStyleClass = `${dynamicTextSize} text-gray-700 font-bold`;
-        else textStyleClass = `${dynamicTextSize} text-cyan-400 font-bold`;
-      } else {
-        textStyleClass = `${dynamicTextSize} text-cyan-400 font-bold`;
-      }
+      appliedClasses.push('cell-header-text');
 
       effectiveDisplayContent = actualValue;
 
       if (isLeftHeader && mode === 'adder') {
-        textStyleClass += ' text-transparent';
+        appliedClasses.push('cell-content-transparent');
         ariaLabel = 'Hidden left header cell';
       }
 
-      if (isSelected && mode !== 'adder') {
-        // Keep default blue highlight for non-adder modes
+      if (isSelected) {
+        appliedClasses.push('cell-selected-bg');
+        if (mode !== 'adder') {
+          // Keep default blue highlight for non-adder modes
+          appliedClasses.push('cell-selected-outline');
+        }
+      } else {
+        appliedClasses.push('cell-hover-bg');
       }
-
-      bgClass = isSelected ? 'bg-gray-700/60' : 'hover:bg-gray-700/50';
-      if (isSelected) style = { ...style, boxShadow: '0 0 0 1px #60a5fa', outline: '1px solid #60a5fa' };
       ariaLabel = actualValue === '0' ? `Reset selection` : `Select ${actualValue}`;
     } else {
       // Data cell
-      textStyleClass = `${dynamicTextSize} font-bold leading-none`;
-
       if (adderColor) {
         effectiveDisplayContent = actualValue;
+        appliedClasses.push('border'); // Adder cells always have a border
         if (adderColor === 'red') {
-          bgClass = 'bg-red-900/40 border-red-500/30';
-          textStyleClass += ' text-red-400';
+          appliedClasses.push('cell-mode-adder-red-bg', 'cell-mode-adder-red-text');
         } else if (adderColor === 'green') {
-          bgClass = 'bg-green-900/40 border-green-500/30';
-          textStyleClass += ' text-green-400';
+          appliedClasses.push('cell-mode-adder-green-bg', 'cell-mode-adder-green-text');
         } else if (adderColor === 'blue') {
-          bgClass = 'bg-blue-900/40 border-blue-500/30';
-          textStyleClass += ' text-blue-400';
+          appliedClasses.push('cell-mode-adder-blue-bg', 'cell-mode-adder-blue-text');
         } else if (adderColor === 'mixed') {
-          // Assuming 'mixed' could be a future state
-          bgClass = 'bg-purple-900/40 border-purple-500/30';
-          textStyleClass += ' text-purple-400';
+          appliedClasses.push('cell-mode-adder-mixed-bg', 'cell-mode-adder-mixed-text');
+        } else if (adderColor === 'darkgrey') {
+          appliedClasses.push('cell-mode-adder-darkgrey-text');
         }
-        borderClasses = `border ${borderClasses
+        // Remove existing border classes that start with 'border-' from borderClasses prop
+        borderClasses = borderClasses
           .split(' ')
           .filter((c) => !c.startsWith('border-'))
-          .join(' ')}`;
+          .join(' ');
       } else if (mode === 'diff') {
-        // Added for diff mode to show numbers even when not selected
         effectiveDisplayContent = actualValue;
-        textStyleClass += ` text-gray-700`; // Prepopulate with dark grey numbers
+        appliedClasses.push('cell-mode-diff-text');
         ariaLabel = 'Grid cell';
       } else if (mode === 'counting' && actualValue !== '') {
         effectiveDisplayContent = actualValue;
         // Text color and aria-label will be handled by CountGrid via className
       } else if (isChangeHighlightedYellow) {
         effectiveDisplayContent = actualValue;
-        textStyleClass += ` text-yellow-500`;
-        bgClass = isHighlightedGreen ? 'bg-green-700/40' : 'bg-yellow-800/30';
+        appliedClasses.push('cell-highlight-yellow-text');
+        if (isHighlightedGreen) {
+          appliedClasses.push('cell-highlight-green-bg');
+        } else {
+          appliedClasses.push('cell-highlight-yellow-bg');
+        }
         ariaLabel = `Value ${actualValue}, changing`;
       } else if (isHighlightedGreen) {
-        bgClass = 'bg-green-700/40';
+        appliedClasses.push('cell-highlight-green-bg', 'cell-highlight-green-text');
         ariaLabel = `Value ${actualValue}`;
         effectiveDisplayContent = actualValue;
-        textStyleClass += ` text-green-300`;
       } else {
         effectiveDisplayContent = '';
-        textStyleClass += ` text-transparent`;
+        appliedClasses.push('cell-content-transparent');
         ariaLabel = 'Grid cell';
       }
     }
 
-    const finalStyle = { ...style };
     if (isMaxValueCell) {
-      finalStyle.outline = '2px solid #22c55e';
-      finalStyle.outlineOffset = '-2px';
+      appliedClasses.push('cell-max-value-outline');
     }
+
+    // Combine all classes
+    const finalClasses = [...appliedClasses, borderClasses, interactiveClasses, className || '']
+      .filter(Boolean)
+      .join(' ');
 
     return (
       <div
         ref={cellRef} // Attach ref here
-        className={`grid-cell-base relative flex items-center justify-center ${baseSizeClasses} ${textStyleClass} ${bgClass} ${borderClasses} ${interactiveClasses} ${className || ''}`}
-        style={finalStyle}
+        className={finalClasses}
+        style={style}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}

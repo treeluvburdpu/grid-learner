@@ -58,7 +58,6 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
         isLeftHeader
         mode={mode}
         borderClasses=""
-        baseSizeClasses="w-full h-full"
         className="text-transparent"
       />
     );
@@ -127,13 +126,12 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
             isHovered={false}
             borderClasses=""
             mode={mode}
-            baseSizeClasses="aspect-square"
             className="adder-cell-no-border"
           />
         );
       } else {
         const isInputSlot = (c === RED_COL || c === GREEN_COL || c === BLUE_COL) && r <= 10;
-        const border = isInputSlot || c === SUM_COL ? 'adder-cell-border' : 'border-none';
+        const border = isInputSlot || c === SUM_COL ? 'adder-cell-border' : ''; // Convert 'border-none' to empty string
 
         const cellStyle: React.CSSProperties = {};
         if (isSumColumnShifted) {
@@ -161,7 +159,6 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
             adderColor={cellAdderColor}
             borderClasses={border}
             mode={mode}
-            baseSizeClasses="aspect-square"
             className={`row-${r} col-${c} ${isInputSlot ? 'hover:bg-gray-800' : ''}`}
             style={cellStyle}
           />
@@ -172,11 +169,13 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
 
   return (
     <div
-      className="grid bg-black/60 select-none w-full grid-no-gap"
-      style={{
-        gridTemplateColumns: `${HEADER_DIM} repeat(${maxX}, minmax(0, 1fr))`,
-        gridTemplateRows: `repeat(${maxY}, auto) ${HEADER_DIM}`,
-      }}
+      className="multiplication-grid-container"
+      style={
+        {
+          '--grid-cols': maxX.toString(),
+          '--grid-rows': maxY.toString(),
+        } as React.CSSProperties
+      }
       role="grid"
       aria-rowcount={maxY + 1}
       aria-colcount={maxX + 1}
@@ -192,9 +191,7 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
         onClick={onReset}
         isHeader={true}
         mode={mode}
-        borderClasses="bg-black/10"
-        baseSizeClasses="w-full h-full"
-        className="text-transparent"
+        className="cell-bg-black-10 cell-content-transparent"
         style={{ width: HEADER_DIM, height: HEADER_DIM }}
       />
 
@@ -234,8 +231,7 @@ export const AdderGrid: React.FC<AdderGridProps> = ({ mode, onReset, adderValues
             isBottomHeader
             mode={mode}
             adderColor={color}
-            borderClasses="border-t border-white/30"
-            baseSizeClasses="w-full h-full"
+            borderClasses="cell-border-top"
           />
         );
       })}

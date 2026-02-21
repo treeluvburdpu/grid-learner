@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SquareCellComponent } from '../CellComponent';
-import { HEADER_DIM, YELLOW_HIGHLIGHT_DURATION_MS } from '../../utils/constants'; // Import constants
+import { YELLOW_HIGHLIGHT_DURATION_MS } from '../../utils/constants'; // Import constants
 
 interface MultiplicationGridCoreProps {
   mode: '10' | 'decimal'; // This component only handles these modes
@@ -103,12 +103,12 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
 
   const getCellBorderClasses = useCallback((rowNum: number, colNum: number, isYellow: boolean): string => {
     if (rowNum === 0 || colNum === 0) return '';
-    if (isYellow) return 'border-t border-l border-yellow-500/80';
+    if (isYellow) return 'cell-highlight-yellow';
 
-    const baseBorderColor = 'border-white';
-    const topBorderClass = `border-t ${baseBorderColor}/30`;
-    const leftBorderClass = `border-l ${baseBorderColor}/30`;
-    return `${topBorderClass} ${leftBorderClass}`.trim();
+    const classes = [];
+    if (rowNum >= 1) classes.push('cell-border-top');
+    if (colNum >= 1) classes.push('cell-border-left');
+    return classes.join(' ');
   }, []);
 
   const isSelectionActive = selectedTop !== null && selectedLeft !== null;
@@ -134,7 +134,6 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
         isSelected={selectedLeft === r}
         mode={mode}
         borderClasses=""
-        baseSizeClasses="w-full h-full"
         isDimmed={isHeaderDimmed}
       />
     );
@@ -160,7 +159,7 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
 
       let borderClasses = getCellBorderClasses(r, c, isYellow);
       if (isLastSelCol && isGreenHighlighted) {
-        borderClasses = `${borderClasses} border-r border-green-400`.trim();
+        borderClasses = `${borderClasses} cell-border-right`.trim();
       }
 
       rowElements.push(
@@ -174,7 +173,6 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
           isChangeHighlightedYellow={isYellow}
           borderClasses={borderClasses}
           mode={mode}
-          baseSizeClasses="aspect-square"
           className={`row-${r} col-${c}`}
           isFirstSelectedRow={isFirstSelRow}
           isLastSelRow={isLastSelRow}
@@ -189,11 +187,13 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
 
   return (
     <div
-      className="grid bg-black/60 select-none w-full grid-no-gap"
-      style={{
-        gridTemplateColumns: `${HEADER_DIM} repeat(${maxX}, minmax(0, 1fr))`,
-        gridTemplateRows: `repeat(${maxY}, auto) ${HEADER_DIM}`,
-      }}
+      className="multiplication-grid-container"
+      style={
+        {
+          '--grid-cols': maxX.toString(),
+          '--grid-rows': maxY.toString(),
+        } as React.CSSProperties
+      }
       role="grid"
       aria-rowcount={maxY + 1}
       aria-colcount={maxX + 1}
@@ -209,9 +209,8 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
         onClick={onReset}
         isHeader={true}
         mode={mode}
-        borderClasses="bg-black/10"
-        baseSizeClasses="w-full h-full"
-        style={{ width: HEADER_DIM, height: HEADER_DIM }}
+        className="cell-bg-black-10 cell-content-transparent"
+        style={{ width: 'var(--header-dim)', height: 'var(--header-dim)' }}
         isDimmed={isSelectionActive}
       />
 
@@ -219,7 +218,7 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
       {Array.from({ length: maxX }, (_, i) => i + 1).map((num) => {
         const cellKey = `header-bottom-${num}`;
         const isDimmed = isSelectionActive;
-        const borderClasses = 'border-t border-white/30';
+        const borderClasses = 'cell-border-top';
         const headerVal = formatHeader(num);
         return (
           <SquareCellComponent
@@ -234,7 +233,6 @@ export const MultiplicationGridCore: React.FC<MultiplicationGridCoreProps> = ({
             isSelected={selectedTop === num}
             mode={mode}
             borderClasses={borderClasses}
-            baseSizeClasses="w-full h-full"
             isDimmed={isDimmed}
           />
         );

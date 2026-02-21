@@ -1,3 +1,156 @@
+:root {
+  --header-dim: 3rem; /* From HEADER_DIM constant */
+  /* --grid-cols and --grid-rows will be set dynamically on the grid container element */
+  /* Calculate cell size based on container width minus header, divided by number of columns */
+  --cell-size: calc((100% - var(--header-dim)) / var(--grid-cols));
+  --grid-border-color-green: #4ade80; /* border-green-400 */
+
+  /* Text Colors */
+  --text-color-cyan: #22d3ee; /* text-cyan-400 */
+  --text-color-red: #f87171; /* text-red-400 */
+  --text-color-green: #4ade80; /* text-green-400 */
+  --text-color-blue: #60a5fa; /* text-blue-400 */
+  --text-color-gray: #374151; /* text-gray-700 */
+  --text-color-yellow: #facc15; /* text-yellow-500 */
+  --text-color-purple: #c084fc; /* text-purple-400 */
+  --text-color-green-light: #86efac; /* text-green-300 */
+
+  /* Background Colors */
+  --bg-color-gray-dark: rgb(55 65 81 / 0.6); /* bg-gray-700/60 */
+  --bg-color-gray-hover: rgb(55 65 81 / 0.5); /* hover:bg-gray-700/50 */
+  --bg-color-red-dark: rgb(153 27 27 / 0.4); /* bg-red-900/40 */
+  --bg-color-green-dark: rgb(20 83 45 / 0.4); /* bg-green-900/40 */
+  --bg-color-blue-dark: rgb(29 78 216 / 0.4); /* bg-blue-900/40 */
+  --bg-color-purple-dark: rgb(109 40 217 / 0.4); /* bg-purple-900/40 */
+  --bg-color-green-light: rgb(20 83 45 / 0.4); /* bg-green-700/40 */
+  --bg-color-yellow-light: rgb(146 64 14 / 0.3); /* bg-yellow-800/30 */
+  --bg-color-black-10: rgb(0 0 0 / 0.1); /* bg-black/10 */
+}
+
+.multiplication-grid-container {
+  display: grid;
+  background-color: rgb(0 0 0 / 0.6); /* bg-black/60 */
+  user-select: none; /* select-none */
+  width: 100%; /* w-full */
+  gap: 0px; /* grid-no-gap */
+  box-sizing: content-box; /* Ensure padding doesn't affect width calculation */
+
+  /* Use CSS variables for grid layout */
+  grid-template-columns: var(--header-dim) repeat(var(--grid-cols), 1fr);
+  /* The height of each row will be equal to the width of a content column */
+  grid-auto-rows: calc(
+    (100% - var(--header-dim)) / var(--grid-cols)
+  ); /* Calculate row height based on dynamic column width */
+  grid-template-rows: repeat(var(--grid-rows), var(--grid-auto-rows)) var(--header-dim);
+}
+
+.cell-border-top {
+  border-top: 1px solid var(--grid-border-color);
+}
+
+.cell-border-left {
+  border-left: 1px solid var(--grid-border-color);
+}
+
+.cell-border-right {
+  border-right: 1px solid var(--grid-border-color-green);
+}
+
+.cell-highlight-yellow {
+  border-top: 1px solid var(--grid-border-color-yellow) !important;
+  border-left: 1px solid var(--grid-border-color-yellow) !important;
+}
+
+/* New semantic classes for cell colors and backgrounds */
+.cell-header-text {
+  color: var(--text-color-cyan);
+  font-weight: bold;
+}
+
+.cell-selected-bg {
+  background-color: var(--bg-color-gray-dark);
+}
+
+.cell-selected-outline {
+  box-shadow: 0 0 0 1px var(--text-color-blue);
+  outline: 1px solid var(--text-color-blue);
+}
+
+.cell-hover-bg {
+  &:hover {
+    background-color: var(--bg-color-gray-hover);
+  }
+}
+
+.cell-highlight-green-bg {
+  background-color: var(--bg-color-green-light);
+}
+
+.cell-highlight-green-text {
+  color: var(--text-color-green-light);
+}
+
+.cell-highlight-yellow-bg {
+  background-color: var(--bg-color-yellow-light);
+}
+
+.cell-highlight-yellow-text {
+  color: var(--text-color-yellow);
+}
+
+.cell-mode-adder-red-text {
+  color: var(--text-color-red);
+}
+.cell-mode-adder-red-bg {
+  background-color: var(--bg-color-red-dark);
+  border-color: rgb(239 68 68 / 0.3); /* border-red-500/30 */
+}
+
+.cell-mode-adder-green-text {
+  color: var(--text-color-green);
+}
+.cell-mode-adder-green-bg {
+  background-color: var(--bg-color-green-dark);
+  border-color: rgb(34 197 94 / 0.3); /* border-green-500/30 */
+}
+
+.cell-mode-adder-blue-text {
+  color: var(--text-color-blue);
+}
+.cell-mode-adder-blue-bg {
+  background-color: var(--bg-color-blue-dark);
+  border-color: rgb(59 130 246 / 0.3); /* border-blue-500/30 */
+}
+
+.cell-mode-adder-darkgrey-text {
+  color: var(--text-color-gray);
+}
+
+.cell-mode-adder-mixed-text {
+  color: var(--text-color-purple);
+}
+.cell-mode-adder-mixed-bg {
+  background-color: var(--bg-color-purple-dark);
+  border-color: rgb(168 85 247 / 0.3); /* border-purple-500/30 */
+}
+
+.cell-mode-diff-text {
+  color: var(--text-color-gray);
+}
+
+.cell-content-transparent {
+  color: transparent;
+}
+
+.cell-max-value-outline {
+  outline: 2px solid var(--text-color-green);
+  outline-offset: -2px;
+}
+
+.cell-bg-black-10 {
+  background-color: var(--bg-color-black-10);
+}
+
 /* index.css */
 .grid-cell-base {
   display: flex;
@@ -11,7 +164,7 @@
 }
 
 .text-gray-800 {
-    color: #333;
+  color: #333;
 }
 
 .cell-superscript {

@@ -38,7 +38,6 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
         isLeftHeader
         mode={mode}
         borderClasses=""
-        baseSizeClasses="w-full h-full"
         className="text-transparent"
       />
     );
@@ -96,13 +95,12 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
             isHovered={false}
             borderClasses=""
             mode={mode}
-            baseSizeClasses="aspect-square"
             className="adder-cell-no-border" // Reusing adder's no-border class
           />
         );
       } else {
         const isInputSlot = (c === GREEN_COL || c === RED_COL) && r <= 10;
-        const border = isInputSlot || c === DIFF_COL ? 'adder-cell-border' : 'border-none'; // Re-insert this line
+        const border = isInputSlot || c === DIFF_COL ? 'adder-cell-border' : ''; // Convert 'border-none' to empty string
 
         rowElements.push(
           <SquareCellComponent
@@ -114,7 +112,6 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
             adderColor={cellDiffColor} // Reusing adderColor prop for diff visualization
             borderClasses={border}
             mode={mode}
-            baseSizeClasses="aspect-square"
             className={`row-${r} col-${c} ${isInputSlot ? 'hover:bg-gray-800' : ''}`}
           />
         );
@@ -124,11 +121,13 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
 
   return (
     <div
-      className="grid bg-black/60 select-none w-full grid-no-gap"
-      style={{
-        gridTemplateColumns: `${HEADER_DIM} repeat(${maxX}, minmax(0, 1fr))`,
-        gridTemplateRows: `repeat(${maxY}, auto) ${HEADER_DIM}`,
-      }}
+      className="multiplication-grid-container"
+      style={
+        {
+          '--grid-cols': maxX.toString(),
+          '--grid-rows': maxY.toString(),
+        } as React.CSSProperties
+      }
       role="grid"
       aria-rowcount={maxY + 1}
       aria-colcount={maxX + 1}
@@ -143,9 +142,7 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
         onClick={onReset}
         isHeader={true}
         mode={mode}
-        borderClasses="bg-black/10"
-        baseSizeClasses="w-full h-full"
-        className="text-transparent"
+        className="cell-bg-black-10 cell-content-transparent"
         style={{ width: HEADER_DIM, height: HEADER_DIM }}
       />
 
@@ -183,8 +180,7 @@ export const DiffGrid: React.FC<DiffGridProps> = ({ mode, onReset, diffValues, o
             isBottomHeader
             mode={mode}
             adderColor={color}
-            borderClasses="border-t border-white/30"
-            baseSizeClasses="w-full h-full"
+            borderClasses="cell-border-top"
           />
         );
       })}
